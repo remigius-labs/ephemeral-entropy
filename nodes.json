@@ -1,0 +1,80 @@
+{
+ "source": "Etherscan node tracker (execution-layer nodes)",
+ "url": "https://etherscan.io/nodetracker",
+ "fetched": "2026-09-12",
+ "total": 11951,
+ "countries": [
+  {
+   "cc": "US",
+   "name": "United States",
+   "n": 4903,
+   "lat": 39.8,
+   "lon": -98.6
+  },
+  {
+   "cc": "DE",
+   "name": "Germany",
+   "n": 2240,
+   "lat": 51.2,
+   "lon": 10.4
+  },
+  {
+   "cc": "GB",
+   "name": "United Kingdom",
+   "n": 1131,
+   "lat": 54.0,
+   "lon": -2.5
+  },
+  {
+   "cc": "RU",
+   "name": "Russia",
+   "n": 865,
+   "lat": 58.0,
+   "lon": 60.0
+  },
+  {
+   "cc": "IR",
+   "name": "Iran",
+   "n": 398,
+   "lat": 32.4,
+   "lon": 53.7
+  },
+  {
+   "cc": "CN",
+   "name": "China",
+   "n": 378,
+   "lat": 35.9,
+   "lon": 104.2
+  },
+  {
+   "cc": "AU",
+   "name": "Australia",
+   "n": 377,
+   "lat": -25.3,
+   "lon": 133.8
+  },
+  {
+   "cc": "JP",
+   "name": "Japan",
+   "n": 239,
+   "lat": 36.2,
+   "lon": 138.3
+  },
+  {
+   "cc": "FR",
+   "name": "France",
+   "n": 209,
+   "lat": 46.6,
+   "lon": 2.2
+  },
+  {
+   "cc": "CA",
+   "name": "Canada",
+   "n": 149,
+   "lat": 56.1,
+   "lon": -106.3
+  }
+ ],
+ "listed": 10889,
+ "rest": 1062
+}

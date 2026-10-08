@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Ephemeral Entropy</title>
+  <meta name="description" content="A Seal in Ethereum blob space, read live from the network. Ethereum serves it for 18 days, then forgets it.">
+  <meta property="og:title" content="Ephemeral Entropy">
+  <meta property="og:description" content="A Seal in Ethereum blob space, read live from the network. Ethereum serves it for 18 days, then forgets it.">
+  <meta property="og:image" content="https://remi.gg/ee/og.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <script>if (/^#[0-9a-f]{64}$/i.test(location.hash)) location.replace("../write/" + location.search + location.hash);</script>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&text=%E2%95%94%E2%95%97%E2%95%9A%E2%95%9D%E2%95%91%E2%95%90%E2%95%A6%E2%95%A9%E2%95%A0%E2%95%A3%C2%B7%E2%88%99%E2%80%87%E2%88%98%E2%97%A6%E2%8A%B9%E2%9C%A7%E2%97%87%E2%97%8B%E2%97%8A%E2%9C%A6%E2%97%86%E2%97%8F%E2%98%85%E2%97%89%E2%9C%A0%E2%8A%99%E2%97%B0%E2%97%B3%E2%97%B1%E2%97%B2%E2%96%A3%E2%9D%96%E2%97%A4%E2%97%A5%E2%97%A3%E2%97%A2%E2%96%B2%E2%96%BC%E2%97%80%E2%96%B6%E2%97%88%E2%96%91%E2%96%92%E2%96%93%E2%96%88%E2%96%80%E2%96%84%E2%94%82%E2%94%80%E2%94%BC&display=swap">
+  <link rel="stylesheet" href="../entropy.css?v=16">
+  <style>
+    body { height: 100dvh; box-sizing: border-box; overflow: hidden; padding-top: 0.5rem; padding-bottom: 1.6rem; }
+    main { flex: 1 1 0; min-height: 0; display: flex; }
+    main, #result { align-items: center; justify-content: flex-start; }
+    #result { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
+    .wiz { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+    #sealwrap { flex: 0 0 auto; display: flex; justify-content: center; }
+    #sealbox { width: min(100%, var(--sealmax, 100%)); aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
+    svg#art { width: 100%; height: 100%; max-height: none; }
+    .epochs { margin: 0.1rem auto 0; font-size: 0.72rem; color: #6b5f52; text-align: center; white-space: nowrap; }
+    .epochs:empty { display: none; }
+    .epochs a { color: #6b5f52; text-decoration: none; border-bottom: 1px solid #2a231e; }
+    #sub[hidden] { display: none; }
+    .act { display: flex; justify-content: center; gap: 0.9rem; margin-top: 1.1rem; }
+    .act a { display: flex; align-items: center; justify-content: center; width: 11rem; flex: 0 1 11rem; min-width: 0; padding: 0.55rem 0.4rem; font: inherit; font-size: 0.9rem; letter-spacing: 0.05em; color: #c4b5a0; background: transparent; border: 1px solid #6b5f52; text-decoration: none; white-space: nowrap; }
+    .act a[hidden] { display: none; }
+    .act a.main { background: #c4b5a0; color: #000; border-color: #c4b5a0; }
+    .act a.hero { width: 22.9rem; flex-basis: 22.9rem; }
+    #pair { margin-top: 1.1rem; } #pair + .act { margin-top: 0.9rem; }
+    #pair[hidden] { display: flex; visibility: hidden; }
+    #pair { transition: opacity 500ms ease-out; } #pair[hidden] { opacity: 0; }
+    #pair.solo a { width: 22.9rem; flex-basis: 22.9rem; }
+    .grp { border: 1px solid #2a231e; padding: 0.3rem 0.9rem 0.7rem; margin: 1rem auto 0; width: 100%; box-sizing: border-box; text-align: center; min-inline-size: auto; }
+    .grp legend { padding: 0 0.5em; font-size: 0.7rem; letter-spacing: 0.12em; color: #6b5f52; text-transform: uppercase; }
+    .act a.main:hover { background: #fff1dc; border-color: #fff1dc; }
+    .act a:not(.main):hover { background: #c4b5a0; color: #000; }
+    h1 { align-self: center; text-align: center; width: 100%; font-size: clamp(1.45rem, 3.6vh, 2.2rem); }
+    h1 a.home { color: inherit; text-decoration: none; }
+    .wiz { width: 100%; max-width: 24rem; margin: 0 auto; text-align: center; }
+    .lblrow { position: relative; }
+    .lbl { margin: 0.5rem 0 0.6rem; font-size: 0.75rem; letter-spacing: 0.12em; color: #6b5f52; text-align: center; }
+    .q { position: absolute; right: 0; top: 0; height: 100%; display: flex; align-items: center; font-size: 0.75rem; color: #6b5f52; cursor: help; letter-spacing: 0; }
+    .q:hover, .q:focus { color: #c4b5a0; outline: none; }
+    .q::after { content: attr(data-tip); position: absolute; left: calc(100% + 0.7em); top: 0; width: 22rem; max-width: 80vw; padding: 0.6rem 0.8rem; background: #000; border: 1px solid #6b5f52; color: #c4b5a0; font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; text-align: left; white-space: pre-line; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+    .q:hover::after, .q:focus::after { opacity: 1; }
+    @media (max-width: 52rem) { .q::after { left: auto; right: 0; top: 1.6em; } }
+    .line { margin: 0.5rem auto 0; font-size: 0.72rem; line-height: 1.6; color: #6b5f52; text-align: center; }
+    .life { display: grid; grid-template-columns: 1fr; grid-template-areas: "bar" "time"; row-gap: 0.45rem; color: #9a8d7c; white-space: nowrap; width: 100%; }
+    .life .hb { grid-area: bar; } .life .kind { display: none !important; } .life .lt { grid-area: time; text-align: center !important; }
+    #line { width: 100%; }
+    .life .hb { position: relative; display: block; height: 5px; background: #221c18; }
+    .life .fg { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #9a8d7c; transition: width 1.2s cubic-bezier(0.2, 0.6, 0.3, 1); }
+    .life .lt { display: inline-block; min-width: 0; white-space: nowrap; text-align: right; transition: opacity 600ms ease-out; }
+    .eps { color: #5c5044; }
+    @keyframes dying { 0%, 100% { opacity: 1; } 7% { opacity: 0.55; } 9% { opacity: 0.95; } 43% { opacity: 1; } 45% { opacity: 0.4; } 46% { opacity: 0.9; } 48% { opacity: 0.6; } 50% { opacity: 1; } 81% { opacity: 0.75; } 83% { opacity: 1; } }
+    .life.dying .fg, #art.dying { animation: dying 4.3s steps(1, end) infinite; }
+    .line a.look { color: #9a8d7c; text-decoration: none; border-bottom: 1px solid #6b5f52; }
+    .life .kind { display: inline-block; min-width: 6ch; text-align: right; color: #6b5f52; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.66rem; }
+    .life.kept .fg { background: #fff1dc; box-shadow: 0 0 6px rgba(255, 241, 220, 0.35); } .life.kept .lt, .life.kept .kind { color: #fff1dc; }
+    .life .hit { position: absolute; top: -1px; bottom: -1px; background: #fff1dc; box-shadow: 0 0 6px #fff1dc; animation: hb-hit 1.4s ease-out forwards; }
+    @keyframes hb-hit { 0% { opacity: 1; } 100% { opacity: 0; transform: scaleY(0.4); } }
+    .line { min-height: 2.6rem; } #pair a { transition: none; }
+    .line .bit { white-space: nowrap; }
+    .line a { color: #6b5f52; text-decoration: none; border-bottom: 1px solid #2a231e; }
+    .line a:hover { color: #c4b5a0; border-bottom-color: #6b5f52; }
+    .ctx:empty { display: none; }
+    .ctx b { color: #c4b5a0; font-weight: 400; }
+    .sub { margin: 0.5rem auto 0; font-size: 0.72rem; line-height: 1.6; color: #6b5f52; text-align: center; }
+    .sub a.link { font-size: inherit; color: #9a8d7c; }
+    #sealbox { position: relative; width: 100%; box-sizing: border-box; background: #000; border: 1px solid #2a231e; overflow: hidden; padding: 0.8rem; }
+    #sealbox[hidden] { display: block; visibility: hidden; }
+    #sealwrap { aspect-ratio: 1 / 1; }
+    @media (min-width: 641px) {
+      .wiz { max-width: clamp(20rem, calc(100vh - 22rem), 40rem); }
+      svg#art { max-height: 66vh; }
+      .act a { padding: 0.42rem 0.4rem; font-size: 0.8rem; width: 9.5rem; flex-basis: 9.5rem; }
+      .act a.hero, #pair.solo a { width: 19.6rem; flex-basis: 19.6rem; }
+      #pair { margin-top: calc(1.4rem - 11px); }
+      .life .hb { margin-top: 7px; } .life { row-gap: calc(0.45rem + 4px); }
+    }
+    svg#art { display: block; width: 100%; height: auto; max-height: 50vh; margin: 0 auto; }
+    pre#seal { margin: 0; font-size: 0.8rem; line-height: 1.5; color: #c4b5a0; white-space: pre; text-align: left; }
+    pre#seal:empty { display: none; }
+    #status { margin: 0.2rem auto 0; font-size: 0.8rem; line-height: 1.7; color: #c4b5a0; text-align: center; min-height: 1.7em; }
+    #status a { color: #c4b5a0; text-decoration: none; border-bottom: 1px solid #6b5f52; }
+    #status .bad { color: #a04030; }
+    #status .bit { white-space: nowrap; }
+    footer.by { position: fixed; left: 0; right: 0; bottom: 0.45rem; margin: 0; text-align: center; pointer-events: none; }
+    footer.by a { pointer-events: auto; }
+  </style>
+</head>
+<body>
+  <div id="bg" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <main>
+    <section id="result">
+      <h1 data-boot><a href="../" class="home">Ephemeral Entropy</a></h1>
+      <nav class="pnav"><a href="../gallery/">gallery</a><a href="../mine/">my seals</a></nav>
+      <div class="wiz">
+        <div class="lblrow"><div class="lbl" id="lbl-seal">Seal in blob space</div><span class="q" tabindex="0" data-tip="This page reads the blob from Ethereum through Blobscan and shows the bytes as text. Nothing is decoded beyond UTF-8.
+
+See it yourself on Etherscan:
+• open the transaction, then its Blobs tab
+• press View output
+• switch the view to UTF-8
+The Seal appears as text, straight from the chain.">(?)</span></div>
+        <div id="sealwrap"><div id="sealbox" hidden><svg id="art" role="img" aria-label="the Seal in this blob" hidden></svg><pre id="seal" aria-live="polite"></pre></div></div>
+        <p id="line" class="line"></p>
+        <div class="act" id="pair" hidden><a id="mintback" hidden>Back to mint</a><a id="scanbtn" target="_blank" rel="noopener">View on Etherscan</a></div>
+        <div class="act"><a class="main hero" href="../">Write your own Seal</a></div>
+        <div id="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+  <footer class="by">made by <a href="https://x.com/Remidotgg" target="_blank" rel="noopener">@Remidotgg</a></footer>
+
+  <script src="../ee-config.js"></script>
+  <script src="../fold2.js?v=2"></script>
+  <script src="../shapes2.js?v=2"></script>
+  <script src="../mint.js?v=9"></script>
+  <script src="../mine.js?v=1"></script>
+  <script src="../corners.js?v=12" data-base="../"></script>
+  <script src="../entropy.js?v=16"></script>
+  <script>
+    let API = "https://api.blobscan.com/blobs/", SCAN = "https://blobscan.com", ETHERSCAN = "https://etherscan.io";
+    async function chain() {
+      try {
+        const r = await fetch((window.EE_RELAY ? window.EE_RELAY + "/index.json" : "../index.json"), { cache: "no-store" });
+        const j = await r.json();
+        if (j.chainId === 11155111) { API = "https://api.sepolia.blobscan.com/blobs/"; SCAN = "https://sepolia.blobscan.com"; ETHERSCAN = "https://sepolia.etherscan.io"; }
+      } catch {}
+    }
+    const GENESIS = 1606824023, SLOT = 12, EPOCH_SLOTS = 32, KEEP_EPOCHS = 4096;
+    let MINTS = null;
+    async function keptId(hash) {
+      try {
+        if (!MINTS) MINTS = (async () => {
+          let contract = "0x9f0749bb1d015cdc982a53784d1b692ce5736e15";
+          try { const j = await (await fetch(window.EE_RELAY + "/index.json", { cache: "no-store" })).json(); if (j.contract) contract = j.contract; } catch {}
+          const rpc = (KEEP.rpc && KEEP.rpc[1]) || "https://ethereum-rpc.publicnode.com", out = []; let n = 0;
+          for (let from = 1; from === 1 || from <= n; from += 100) {
+            const body = from === 1 ? [{ jsonrpc: "2.0", id: 0, method: "eth_call", params: [{ to: contract, data: "0x18160ddd" }, "latest"] }] : [];
+            for (let id = from; id < from + 100 && (from === 1 || id <= n); id++) body.push({ jsonrpc: "2.0", id, method: "eth_call", params: [{ to: contract, data: "0x86fe212d" + id.toString(16).padStart(64, "0") }, "latest"] });
+            const res = await (await fetch(rpc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })).json();
+            if (from === 1) { const t = res.find(r => r.id === 0); n = t && t.result ? parseInt(t.result, 16) : 0; }
+            for (const r of res) if (r.id >= 1 && r.id <= n && r.result && r.result.length >= 194) out.push({ id: r.id, contract, ash: r.result.slice(2, 66), blob: "0x" + r.result.slice(66, 130) });
+          }
+          return out;
+        })();
+        const m = (await MINTS).find(x => x.blob.toLowerCase() === hash.toLowerCase());
+        return m ? { id: m.id, contract: m.contract, ash: m.ash } : null;
+      } catch { return null; }
+    }
+    function keptBar(host, k) {
+      clearInterval(lifeTimer); if (!host.querySelector(".life")) host.innerHTML = BAR;
+      host.querySelector(".life").classList.add("kept");
+      host.querySelector(".kind").textContent = "NFT"; host.querySelector(".fg").style.width = "100%"; host.querySelector(".lt").textContent = "∞ token #" + k.id + " · kept forever";
+    }
+    let lifeTimer = null;
+    const BAR = '<span class="life"><span class="kind">&nbsp;</span><span class="hb"><span class="fg"></span></span><span class="lt">&nbsp;</span></span>';
+    const emptyBar = (host) => { clearInterval(lifeTimer); host.innerHTML = BAR; };
+    function lifeBar(host, prune) {
+      const E = SLOT * EPOCH_SLOTS, pruneEpoch = Math.floor((prune.getTime() / 1000 - GENESIS) / E);
+      const left = () => Math.max(0, Math.min(KEEP_EPOCHS, pruneEpoch - Math.floor((Date.now() / 1000 - GENESIS) / E)));
+      const rough = (n) => { const sec = n * E; return sec >= 86400 ? Math.round(sec / 86400) + " days" : sec >= 3600 ? Math.round(sec / 3600) + " hours" : sec > 0 ? Math.ceil(sec / 60) + " min" : "pruned"; };
+      if (!host.querySelector(".life")) host.innerHTML = BAR;
+      const fg = host.querySelector(".fg"), lt = host.querySelector(".lt"), hb = host.querySelector(".hb");
+      let last = null;
+      const tick = () => {
+        const n = left(), w = n / KEEP_EPOCHS * 100;
+        if (n === last) return;
+        if (last !== null && n < last) { const h = document.createElement("span"); h.className = "hit"; h.style.left = w + "%"; h.style.width = Math.max((last - n) / KEEP_EPOCHS * 100, 0.6) + "%"; hb.appendChild(h); setTimeout(() => h.remove(), 1500); }
+        last = n; fg.style.width = w.toFixed(3) + "%";
+        { const l = Math.min(1, n * SLOT * EPOCH_SLOTS / 86400); fg.style.opacity = l.toFixed(3); document.getElementById("art").style.opacity = l.toFixed(3); }
+        lt.textContent = rough(n) + " until forgotten"; host.querySelector(".kind").textContent = "Blob";
+      };
+      clearInterval(lifeTimer); tick(); lifeTimer = setInterval(tick, 1000);
+    }
+    function servedUntil(blockTime) {
+      const slot = Math.floor((blockTime.getTime() / 1000 - GENESIS) / SLOT);
+      const epoch = Math.floor(slot / EPOCH_SLOTS);
+      return new Date((GENESIS + (epoch + KEEP_EPOCHS + 1) * EPOCH_SLOTS * SLOT) * 1000);
+    }
+    const seal = document.getElementById("seal");
+    const art = document.getElementById("art");
+    const sealbox = document.getElementById("sealbox");
+    const status = document.getElementById("status");
+    const lineEl = document.getElementById("line");
+    const lblSeal = document.getElementById("lbl-seal"); lblSeal.style.transition = "opacity 500ms ease-out"; lblSeal.style.opacity = "0";
+    const pair = document.getElementById("pair"), mintBack = document.getElementById("mintback"), scanBtn = document.getElementById("scanbtn");
+    const long = (d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+    function hexToBytes(h) { return Uint8Array.from(h.slice(2).match(/../g).map(x => parseInt(x, 16))); }
+
+    function toText(bytes) {
+      let end = bytes.length;
+      while (end > 0 && bytes[end - 1] === 0) end--;
+      const raw = new TextDecoder("utf-8").decode(bytes.subarray(0, end));
+      const lines = raw.replace(/\s+$/, "").split("\n").map(l => l.replace(/\s+$/, ""));
+      const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+      return lines.map(l => l.slice(indent)).join("\n");
+    }
+
+    function fmt(d) { return d.toISOString().slice(0, 10); }
+    function left(ms) {
+      if (ms <= 0) return "archive copy";
+      const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5);
+      return d > 0 ? `${d}d ${h}h` : `${h}h ${Math.floor(ms % 36e5 / 6e4)}m`;
+    }
+
+    async function show(hash) {
+      emptyRun++;
+      await chain();
+      seal.textContent = "";
+      art.setAttribute("hidden", ""); sealbox.hidden = false;
+      status.textContent = ""; emptyBar(lineEl); pair.hidden = true; mintBack.hidden = true; lblSeal.style.opacity = "0";
+      const KEPT = keptId(hash);
+      let text, tx, copy = "", info = {};
+      try {
+        let data;
+        [info, data] = await Promise.all([
+          fetch(API + hash).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+          fetch(API + hash + "/data").then(r => r.ok ? r.json() : Promise.reject(r.status)),
+        ]);
+        const hex = typeof data === "string" ? data : data.data;
+        text = toText(hexToBytes(hex));
+        tx = (info.transactions || [])[0] || {};
+      } catch (e) {
+        if (!window.EE_RELAY) throw "unreachable";
+        let r; try { r = await fetch(window.EE_RELAY + "/blob/" + hash, { cache: "no-store" }); } catch { throw "unreachable"; }
+        if (!r.ok) throw (r.status === 404 ? 404 : "unreachable");
+        const j = await r.json();
+        text = j.seal; tx = { txHash: j.tx, blockNumber: j.block || null, blockTimestamp: j.timestamp ? j.timestamp * 1000 : null };
+        copy = "relayer copy · blobscan is still indexing";
+      }
+      const at = tx.blockTimestamp ? new Date(tx.blockTimestamp) : null;
+      const prune = at ? servedUntil(at) : null;
+      const scanHref = ETHERSCAN + (tx.txHash ? "/tx/" + tx.txHash + "#blobs" : "/blob/" + hash);
+      const alive = prune && prune > Date.now(), epochs = alive ? Math.max(0, Math.ceil((prune - Date.now()) / 1000 / (SLOT * EPOCH_SLOTS))) : 0;
+      const kept = await KEPT;
+      lblSeal.textContent = kept ? "Kept Seal · token #" + kept.id : "Seal in blob space"; lblSeal.style.opacity = "1";
+      if (kept) keptBar(lineEl, kept);
+      else if (alive) lifeBar(lineEl, prune);
+      else if (prune) lineEl.innerHTML = 'Forgotten ' + prune.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ' · <a class="look" href="https://blobscan.com/blob/' + hash + '" target="_blank" rel="noopener">look for it on Blobscan</a>';
+      else lineEl.textContent = "Read from Ethereum's blob space";
+      scanBtn.href = scanHref; let mine = null; try { mine = localStorage.getItem("ee.ash." + hash); } catch {}
+      if (!mine && window.EEMine) { const r = EEMine.all().find(x => x.blobHash === hash.toLowerCase()); if (r) mine = r.ash; }
+      scanBtn.hidden = !!kept;
+      if (kept) { mintBack.textContent = "View on OpenSea"; mintBack.href = "https://opensea.io/assets/ethereum/" + kept.contract + "/" + kept.id; mintBack.target = "_blank"; mintBack.rel = "noopener"; mintBack.hidden = false; }
+      else if (mine && /^[0-9a-f]{64}$/.test(mine)) { mintBack.textContent = "Mint"; mintBack.removeAttribute("target"); mintBack.href = "../write/" + location.search + "#" + mine; mintBack.hidden = false; }
+      pair.classList.toggle("solo", mintBack.hidden || scanBtn.hidden); pair.hidden = false;
+      status.textContent = "";
+      const forgotten = !kept && prune && prune <= Date.now();
+      art.classList.remove("dying"); art.style.opacity = "";
+      const glyphs = forgotten ? Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => (r === 4 && c === 4 ? CENTER : " "))) : gridFromText(text);
+      if (glyphs) {
+        art.removeAttribute("hidden");
+        drawSeal(art, glyphs);
+        fit(); await revealSeal(art, { mode: "bloom" });
+        const k = kept && kept.ash ? kept.ash : hash.replace(/^0x/, "");
+        lightSeal(art, Uint8Array.from(k.match(/../g).map(x => parseInt(x, 16))));
+      } else {
+        seal.textContent = text;
+      }
+    }
+
+    function go(hash) {
+      hash = (hash || "").trim().toLowerCase();
+      if (!/^0x01[0-9a-f]{62}$/.test(hash)) { lineEl.textContent = ""; status.textContent = "Nothing here."; emptyBox(hash); return; }
+      if (location.hash.slice(1) !== hash) history.replaceState(null, "", "#" + hash);
+      show(hash).catch(e => {
+        lineEl.textContent = "";
+        status.innerHTML = e === 404 ? 'Nothing here. The network let it go, or it never was.' : 'Blob space did not answer.';
+        emptyBox(hash);
+      });
+    }
+    let emptyRun = 0;
+    async function emptyBox(hash) {
+      const me = ++emptyRun;
+      const blank = Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => (r === 4 && c === 4 ? CENTER : " ")));
+      sealbox.hidden = false; seal.textContent = ""; art.removeAttribute("hidden");
+      art.classList.remove("gone", "lit"); drawSeal(art, blank, { style: 2 });
+      await revealSeal(art, { mode: "bloom" }); if (me !== emptyRun) return;
+      await letGoSeal(art, 5000);
+    }
+
+    const fit = () => { const sb = sealbox; sb.style.removeProperty("--sealmax"); const over = document.documentElement.scrollHeight - innerHeight; if (over > 0) sb.style.setProperty("--sealmax", Math.max(160, sb.clientWidth - over) + "px"); };
+    addEventListener("hashchange", () => go(location.hash.slice(1)));
+    go(location.hash.slice(1));
+  </script>
+  <script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]nudge/.test(location.search)) { const s = document.createElement("script"); s.src = "/ee/nudge.js"; document.body.appendChild(s); }</script>
+</body>
+</html>

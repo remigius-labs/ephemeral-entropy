@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Gallery · Ephemeral Entropy</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap">
+  <link rel="stylesheet" href="../entropy.css?v=16">
+  <style>
+    body { display: block; height: 100vh; min-height: 0; overflow: hidden; padding: 0; font-size: 14px; }
+    #stage { position: fixed; inset: 0; padding: 5rem 2rem 3.6rem; z-index: 1; }
+    @media (min-width: 641px) { #stage { padding-top: 7.2rem; } }
+    #stage > .v.fade { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 4.5rem), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 4.5rem), transparent); }
+    .shelf { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
+    .shelf .shead { display: flex; justify-content: center; align-items: center; color: #9a8d7c; border-bottom: 0; margin-bottom: 6px; }
+    .shelfrow { display: flex; gap: 14px; justify-content: center; flex-wrap: nowrap; }
+    .kcell { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .kcap { margin-top: 5px; font: 0.66rem 'JetBrains Mono', monospace; letter-spacing: 0.08em; color: #fff1dc; }
+    .shelf .box.kept { box-shadow: 0 0 16px rgba(255, 241, 220, 0.14); }
+    .ebody { flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden; margin-top: 1.6rem; scrollbar-width: none; }
+    .ebody.fade { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 4.5rem), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 4.5rem), transparent); }
+    #stage > .more { position: absolute; right: 2.4rem; bottom: 1.2rem; font: 0.66rem 'JetBrains Mono', monospace; letter-spacing: 0.08em; color: #6b5f52; transition: opacity 400ms ease-out; pointer-events: none; }
+    #logo { position: fixed; top: 0.9rem; left: 0; right: 0; margin: 0; text-align: center; z-index: 3; font-size: clamp(1.45rem, 3.6vh, 2.2rem); pointer-events: none; }
+    #logo a { color: inherit; text-decoration: none; pointer-events: auto; }
+    #said { position: fixed; top: 3.35rem; left: 0; right: 0; z-index: 3; text-align: center; font: 0.66rem 'JetBrains Mono', monospace; letter-spacing: 0.06em; color: #5c5044; pointer-events: none; }
+    #said b { color: #9a8d7c; font-weight: 400; }
+    #stage > .v { position: relative; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; }
+    .wait { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #6b5f52; letter-spacing: 0.12em; font-size: 0.8rem; }
+    #tag { position: fixed; top: 0.9rem; right: 1.2rem; z-index: 99; text-align: right; font-size: 0.75rem; line-height: 1.6; color: #6b5f52; }
+    #tag b { color: #fff1dc; font-weight: 400; }
+    #tag .src { color: #9a8d7c; }
+    #tag .src.fx { color: #a04030; }
+    #desc { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 99; text-align: center; font-size: 0.75rem; color: #9a8d7c; pointer-events: none; }
+    #desc b { color: #c4b5a0; font-weight: 400; }
+    #ctl { position: fixed; top: 0.9rem; left: 1.2rem; z-index: 99; display: flex; gap: 0.7rem; align-items: center; font-size: 0.72rem; color: #6b5f52; }
+    #ctl button { font: inherit; color: #9a8d7c; background: transparent; border: 1px solid #3a312a; padding: 0.15rem 0.6rem; cursor: pointer; }
+    #ctl button:hover, #ctl button.on { background: #c4b5a0; color: #000; border-color: #c4b5a0; }
+    #ctl input { width: 6rem; accent-color: #c4b5a0; vertical-align: middle; }
+    @media (max-width: 640px) {
+      #stage { padding: 4.9rem 16px 4.6rem; }
+      #ctl { left: 16px; top: 0.7rem; gap: 0.45rem; }
+      #ctl input { width: 3.6rem; }
+      #ctl #runlen { display: none; }
+      #tag { top: 2.6rem; left: 16px; right: 16px; text-align: left; line-height: 1.45; font-size: 0.68rem; }
+      #tag br { display: none; }
+      #tag .src::before { content: " · "; color: #6b5f52; }
+      #tag .dim { display: none; }
+      #desc { bottom: 0.7rem; font-size: 0.68rem; line-height: 1.45; }
+    }
+    .hot { color: #fff1dc; }
+    .dim { color: #6b5f52; }
+    svg.seal { color: #c4b5a0; }
+    svg.seal.kept { color: #c4b5a0; }
+    svg.seal.kept.lit { filter: none; }
+
+    .box { background: #000; border: 1px solid #2a231e; padding: 7%; aspect-ratio: 1; position: relative; overflow: hidden; }
+    .box.wait::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(196, 181, 160, 0.045) 50%, transparent 70%); background-size: 250% 100%; animation: box-wait 2.4s ease-in-out infinite; }
+    @keyframes box-wait { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+    .box.kept { border-color: #7d6f60; box-shadow: 0 0 8px rgba(255, 241, 220, 0.07); }
+    .box svg.seal { width: 100%; height: 100%; }
+    .cap { width: 100%; font-size: 0.66rem; line-height: 1.25rem; color: #6b5f52; overflow: hidden; }
+    .cap .l { display: flex; justify-content: space-between; gap: 0.5em; white-space: nowrap; overflow: hidden; }
+    .cap .l > span { overflow: hidden; text-overflow: clip; }
+    .cap .l > span:first-child { flex: none; color: #9a8d7c; }
+    .cap.kept, .cap.kept .l > span { color: #fff1dc; }
+    .bar { color: #2e2620; white-space: pre; overflow: hidden; display: flex; align-items: center; height: 100%; }
+    .eps { color: #5c5044; }
+    .td { display: inline-block; width: 10ch; }
+    .lr.head .sort { cursor: pointer; } .lr.head .sort:hover, .lr.head .sort.on { color: #c4b5a0; }
+    .lr .yes { color: #fff1dc; } .lr .no { color: #5c5044; }
+    .lr .light { color: #9a8d7c; overflow: hidden; text-overflow: ellipsis; } .lr.kept .light { color: #c4b5a0; }
+    .lr .own { overflow: hidden; text-overflow: ellipsis; color: #c4b5a0; } .lr .own.in { animation: own-in 600ms ease-out; }
+    @keyframes own-in { from { opacity: 0; } to { opacity: 1; } }
+    .hb.k .fg { background: #fff1dc; opacity: 1; }
+    .td.k, .eps.k { color: #fff1dc; }
+    @keyframes dying { 0%, 100% { filter: none; } 7% { filter: brightness(0.5); } 9% { filter: brightness(0.95); } 45% { filter: brightness(0.35); } 46% { filter: brightness(0.9); } 48% { filter: brightness(0.6); } 50% { filter: none; } 81% { filter: brightness(0.7); } 83% { filter: none; } }
+    svg.seal.dying { animation: dying 4.3s steps(1, end) infinite; }
+    .grid svg.seal { transition: opacity 350ms ease-out; }
+    .box:hover svg.seal, .box.hl svg.seal, [data-n].hl svg.seal { opacity: 1 !important; animation: none; }
+    .hb { display: block; position: relative; width: 100%; height: 5px; background: #221c18; }
+    .hb .fg { position: absolute; left: 0; top: 0; bottom: 0; background: #9a8d7c; transition: opacity 600ms ease-out; }
+    .bar i { font-style: normal; color: #9a8d7c; }
+    .hb { position: relative; display: inline-block; vertical-align: top; }
+    .hb .hit { position: absolute; top: -1px; bottom: -1px; background: #fff1dc; box-shadow: 0 0 6px #fff1dc; animation: hb-hit 1.4s ease-out forwards; }
+    @keyframes hb-hit { 0% { opacity: 1; } 100% { opacity: 0; transform: scaleY(0.4); } }
+    .tl { font-variant-numeric: tabular-nums; }
+    img.seal.art { display: block; width: 100%; height: 100%; }
+    img.seal.art.lit { filter: drop-shadow(0 0 4px rgba(255, 241, 220, 0.45)); }
+    .off .w, svg.seal.off .w { animation-play-state: paused; }
+    #write { position: fixed; top: 0.85rem; left: 50%; transform: translateX(-50%); z-index: 99; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #c4b5a0; border: 1px solid #6b5f52; border-radius: 999px; padding: 0.3rem 1.1rem; text-decoration: none; background: rgba(13, 10, 9, 0.85); letter-spacing: 0.04em; }
+    #write:hover { border-color: #c4b5a0; color: #fff1dc; }
+    @media (max-width: 640px) { #write { top: auto; left: auto; transform: none; right: 16px; bottom: 0.7rem; font-size: 0.72rem; padding: 0.25rem 0.8rem; } #desc { right: 8.4rem; text-align: left; } }
+    .kept .bar, .kept .bar i, .bar.k, .bar.k i { color: #fff1dc; }
+    .hl .box, .box.hl { border-color: #c4b5a0; }
+    .hl.kept .box, .box.kept.hl { border-color: #c4b5a0; box-shadow: 0 0 14px rgba(255, 241, 220, 0.18); }
+
+    .ledger { display: flex; justify-content: center; align-items: flex-start; gap: 3rem; color: #9a8d7c; }
+    .lcol { display: flex; flex-direction: column; }
+    .lr { display: grid; grid-template-columns: var(--cols); column-gap: var(--gap); align-items: center; height: var(--rh); white-space: pre; padding: 0 0.4rem; }
+    .lr > * { overflow: hidden; }
+    .lr.head { color: #6b5f52; letter-spacing: 0.08em; font-size: 0.64rem; text-transform: uppercase; height: 1.6rem; border-bottom: 1px solid #2a231e; margin-bottom: 2px; }
+    .lr.kept { color: #fff1dc; }
+    .lr .th { display: flex; align-items: center; justify-content: center; }
+    .lr.hl { background: #1a1411; }
+    .lr.hl:not(.kept) { color: #c4b5a0; }
+    .lr .n { color: #6b5f52; }
+    .lr.kept .n { color: #fff1dc; }
+
+    .ga { display: grid; justify-content: center; align-content: center; min-height: 100%; }
+    .ga .cell { display: flex; flex-direction: column; min-width: 0; }
+    .ga .cap { padding-top: 0.25rem; }
+
+    .gc { display: flex; gap: 2.4rem; align-items: center; justify-content: center; min-height: 100%; }
+    .gc .grid { display: grid; }
+    .gc .box { padding: 6%; cursor: default; }
+    .gc .ledger { cursor: default; }
+    @media (max-width: 640px) { .gc { flex-direction: column; gap: 1.4rem; justify-content: flex-start; } }
+
+    .gd { display: flex; flex-direction: column; align-items: center; min-height: 100%; justify-content: center; }
+    .gd .lbl { align-self: stretch; display: flex; justify-content: space-between; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: #6b5f52; border-bottom: 1px solid #2a231e; padding-bottom: 0.35rem; margin-bottom: 0.8rem; }
+    .gd .lbl.k { color: #fff1dc; border-color: #6b5f52; }
+    .gd .shelf { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6rem; margin-bottom: 1.6rem; }
+    .gd .shelf .cell { display: flex; flex-direction: column; }
+    .gd .shelf .cap { text-align: center; padding-top: 0.35rem; }
+    .gd .shelf .cap .l { justify-content: center; }
+
+    .ge { display: flex; flex-direction: column; min-height: 100%; justify-content: center; font-size: 0.78rem; }
+    .ge .term { border: 1px solid #2a231e; background: rgba(0, 0, 0, 0.55); padding: 0.9rem 1.2rem; }
+    .ge .hd { color: #9a8d7c; line-height: 1.6; white-space: pre-wrap; }
+    .ge .hd .p { color: #6b5f52; }
+    .ge .rule { border-top: 1px dashed #2a231e; margin: 0.7rem 0; }
+    .ge .grid { display: grid; justify-content: center; }
+    .ge .t { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+    .ge .t .box { width: 100%; padding: 8%; }
+    .ge .t.on .box { border-color: #c4b5a0; outline: 1px solid #6b5f52; outline-offset: 2px; }
+    .ge .t.on.kept .box { border-color: #fff1dc; }
+    .ge .t .bar { font-size: 0.56rem; line-height: 1rem; text-align: center; width: 100%; }
+    .ge .t.kept .bar { color: #fff1dc; }
+    .ge .ft { color: #c4b5a0; white-space: pre; overflow: hidden; line-height: 1.6; }
+    .ge .ft.kept { color: #fff1dc; }
+    .ge .ft .bar { display: inline; }
+    .ge .cur { display: inline-block; width: 0.6em; background: #c4b5a0; color: #000; }
+    @media (max-width: 640px) { .ge { font-size: 0.68rem; justify-content: flex-start; } .ge .term { padding: 0.7rem; } .ge .ft { white-space: pre-wrap; } }
+
+    .gf { display: flex; flex-direction: column; justify-content: center; min-height: 100%; }
+    .gf .day { display: flex; gap: 1.4rem; align-items: flex-start; border-top: 1px solid #1f1916; padding: 0.55rem 0; }
+    .gf .meta { flex: none; width: 8.5rem; font-size: 0.72rem; line-height: 1.5; color: #6b5f52; padding-top: 0.2rem; }
+    .gf .meta b { display: block; font-weight: 400; color: #c4b5a0; font-size: 0.9rem; }
+    .gf .meta .k { color: #fff1dc; }
+    .gf .row { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; }
+    .gf .cell { display: flex; flex-direction: column; }
+    .gf .cap { padding-top: 0.2rem; }
+    @media (max-width: 640px) { .gf { justify-content: flex-start; } .gf .day { flex-direction: column; gap: 0.4rem; } .gf .meta { width: auto; } .gf .meta b { display: inline; margin-right: 0.6em; } }
+  </style>
+</head>
+<body>
+  <div id="bg" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <h1 id="logo"><a href="../" class="home">Ephemeral Entropy</a></h1>
+  <div id="said" aria-live="polite">&nbsp;</div>
+  <div id="stage"></div>
+
+  <script src="../fold2.js?v=2"></script>
+  <script src="../shapes2.js?v=2"></script>
+  <script src="../entropy.js?v=16"></script>
+  <script src="../ee-config.js"></script>
+  <script src="../mint.js?v=9"></script>
+  <script src="../corners.js?v=12" data-base="../"></script>
+  <script>
+  (() => {
+    const RELAY = "https://relay.remi.gg", RPC = KEEP.rpc[1], CONTRACT = "0x9f0749bb1d015cdc982a53784d1b692ce5736e15";
+    const NS = "http://www.w3.org/2000/svg", LIFE = 4097 * 384;
+    const $ = (id) => document.getElementById(id);
+    const bytes = (h) => Uint8Array.from(h.replace(/^0x/, "").match(/../g), x => parseInt(x, 16));
+    const now = () => Date.now() / 1000;
+    const pad = (n) => String(n).padStart(2, "0");
+    const sp = () => 1;
+    const loopOn = () => !matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let FIX = null;
+    const fixture = async () => FIX || (FIX = await (await fetch("gallery.json", { cache: "no-store" })).json());
+    async function readMints(contract) {
+      const call = async (body) => (await fetch(RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })).json();
+      const sel = (id) => ({ jsonrpc: "2.0", id, method: "eth_call", params: [{ to: contract, data: "0x86fe212d" + id.toString(16).padStart(64, "0") }, "latest"] });
+      let n = 0; const out = [];
+      for (let from = 1; from === 1 || from <= n; from += 100) {
+        const batch = from === 1 ? [{ jsonrpc: "2.0", id: 0, method: "eth_call", params: [{ to: contract, data: "0x18160ddd" }, "latest"] }] : [];
+        for (let id = from; id < from + 100 && (from === 1 || id <= n); id++) batch.push(sel(id));
+        const res = await call(batch);
+        if (!Array.isArray(res)) throw new Error("rpc");
+        if (from === 1) { const t = res.find(r => r.id === 0); n = t && t.result ? parseInt(t.result, 16) : 0; }
+        for (const r of res) {
+          if (r.id < 1 || r.id > n || !r.result || r.result.length < 194) continue;
+          out.push({ id: r.id, ash: r.result.slice(2, 66), blobHash: "0x" + r.result.slice(66, 130), expiry: parseInt(r.result.slice(130, 194), 16) });
+        }
+        if (!n) break;
+      }
+      return out.sort((a, b) => a.id - b.id);
+    }
+    function textGlyphs(hex) {
+      const b = bytes(hex); let end = b.length; while (end > 0 && b[end - 1] === 0) end--;
+      const lines = new TextDecoder("utf-8").decode(b.subarray(0, end)).replace(/\s+$/, "").split("\n").map(l => l.replace(/\s+$/, ""));
+      const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+      return gridFromText(lines.map(l => l.slice(indent)).join("\n"));
+    }
+    const KEY = (h) => "ee.lab.glyphs." + h;
+    async function blobGlyphs(hash, fresh) {
+      if (!fresh) { try { const c = JSON.parse(localStorage.getItem(KEY(hash)) || "null"); if (c) return { g: c, from: "cache" }; } catch {} }
+      try {
+        const d = await (await fetch("https://api.blobscan.com/blobs/" + hash + "/data")).json();
+        const g = textGlyphs(typeof d === "string" ? d : d.data);
+        if (g) { try { localStorage.setItem(KEY(hash), JSON.stringify(g)); } catch {} return { g, from: "blobscan" }; }
+      } catch {}
+      try { const c = (await fixture()).casts.find(x => x.blobHash === hash); if (c && c.glyphs) return { g: c.glyphs, from: "fixture" }; } catch {}
+      return { g: null, from: "none" };
+    }
+    let DATA = null, SORT = { key: "n", dir: -1 };
+    const SNAP = "ee.gallery.snap";
+    const snapRead = () => { try { return JSON.parse(localStorage.getItem(SNAP) || "null"); } catch { return null; } };
+    const snapSave = (seals, mints) => { try { localStorage.setItem(SNAP, JSON.stringify({ casts: seals.map(x => ({ blobHash: x.blobHash, tx: x.tx, block: x.block, expiry: x.expiry, glyphs: x.glyphs })), mints })); } catch {} };
+    async function quick() {
+      const q = snapRead() || await fixture().catch(() => null);
+      return q ? build({ seals: q.casts }, q.mints, "snapshot", false) : null;
+    }
+    function say(seals, got, of, src) {
+      const kept = seals.filter(x => x.minted).length, el = document.getElementById("said"); if (!el) return;
+      el.innerHTML = of && got < of ? "reading blob space · <b>" + got + "</b> of " + of
+        : "<b>" + seals.length + "</b> Seals cast · <b>" + kept + "</b> kept · <b>" + seals.filter(x => !x.minted && x.expiry && x.expiry * 1000 < Date.now()).length + "</b> forgotten";
+    }
+    async function load(fresh) {
+      let idx, mints, src = "live";
+      try {
+        idx = await (await fetch(RELAY + "/index.json", { cache: "no-store" })).json();
+        mints = await readMints(idx.contract || CONTRACT);
+      } catch {
+        const f = await fixture(); idx = { seals: f.casts }; mints = f.mints; src = "fixture";
+      }
+      const known = new Map();
+      try { (await fixture()).casts.forEach(c => c.glyphs && known.set(c.blobHash.toLowerCase(), c.glyphs)); } catch {}
+      (snapRead()?.casts || []).forEach(c => c.glyphs && known.set(c.blobHash.toLowerCase(), c.glyphs));
+      if (!fresh) (idx.seals || []).forEach(c => { if (!c.glyphs && c.blobHash) { const g = known.get(c.blobHash.toLowerCase()); if (g) c.glyphs = g; } });
+      const d = build(idx, mints, src, fresh);
+      if (src === "live") Promise.all(d.seals.map(x => x.ready)).then(() => snapSave(d.seals, mints));
+      return d;
+    }
+    function build(idx, mints, src, fresh) {
+      const byHash = new Map(mints.map(m => [m.blobHash.toLowerCase(), m]));
+      const FIRST = 26100788;
+      const casts = (idx.seals || []).filter(s => s.blobHash && s.expiry && (!s.block || s.block >= FIRST)).sort((a, b) => (a.block || 0) - (b.block || 0) || a.expiry - b.expiry);
+      for (const m of mints) if (!casts.some(c => c.blobHash.toLowerCase() === m.blobHash.toLowerCase())) casts.push({ blobHash: m.blobHash, expiry: m.expiry });
+      const seals = casts.map((c, i) => {
+        const m = byHash.get(c.blobHash.toLowerCase()) || null;
+        const s = { n: i + 1, blobHash: c.blobHash, tx: c.tx, block: c.block, expiry: c.expiry, castAt: c.expiry - LIFE,
+                    minted: m ? m.id : null, ash: m ? bytes(m.ash) : null, seed: bytes(c.blobHash), glyphs: null, from: null };
+        if (m) { s.glyphs = FOLD2.grid(s.ash); s.from = "ash"; s.ready = Promise.resolve(s.glyphs); }
+        else if (c.glyphs) { s.glyphs = c.glyphs; s.from = src === "live" ? "known" : src; s.ready = Promise.resolve(s.glyphs); }
+        return s;
+      });
+      seals.forEach(s => { if (!s.ready && !s.minted && s.expiry && s.expiry * 1000 < Date.now()) { s.glyphs = blank(); s.from = "forgotten"; s.forgotten = true; s.ready = Promise.resolve(s.glyphs); } });
+      const todo = seals.filter(s => !s.ready);
+      const done = new Map(todo.map(s => { let r; const p = new Promise(res => r = res); s.ready = p; return [s, r]; }));
+      (async () => {
+        let k = 0;
+        let got = 0;
+        const worker = async () => { while (k < todo.length) { const s = todo[k++]; const { g, from } = await blobGlyphs(s.blobHash, fresh); s.glyphs = g; s.from = from; done.get(s)(g); got++; say(seals, got, todo.length, src); tag(); } };
+        say(seals, 0, todo.length, src);
+        await Promise.all([worker(), worker(), worker(), worker()]);
+      })();
+      return { seals, src, mints: mints.length };
+    }
+
+    function left(s) {
+      const ms = (s.expiry - now()) * 1000;
+      if (ms <= 0) return "pruned";
+      const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+      return d > 0 ? d + "d " + pad(h) + "h" : h + "h " + pad(m) + "m";
+    }
+
+    const EPOCH = 384, KEEP_EPOCHS = 4096;
+    const GENESIS = 1606824023;
+    const epochNow = () => Math.floor((now() - GENESIS) / EPOCH);
+    const epochsLeft = (s) => Math.max(0, Math.min(KEEP_EPOCHS, Math.floor((s.expiry - GENESIS) / EPOCH) - epochNow()));
+    const lifeLeft = (s) => epochsLeft(s) / KEEP_EPOCHS;
+    const roughly = (s) => { const sec = epochsLeft(s) * EPOCH; return sec >= 86400 ? Math.round(sec / 86400) + " days" : sec >= 3600 ? Math.round(sec / 3600) + " hours" : sec > 0 ? Math.ceil(sec / 60) + " min" : "forgotten"; };
+    const epText = (s) => epochsLeft(s) ? '<span class="td">' + roughly(s) + "</span>" : '<span class="td">forgotten</span><span class="eps">' + day(s.expiry) + "</span>";
+    const lastDay = (s) => { if (s.minted) return 1; const sec = (s.expiry || 0) - Date.now() / 1000; return sec <= 0 ? 0 : Math.min(1, sec / 86400); };
+    const lifeOpacity = (s) => lastDay(s).toFixed(3);
+    const lifeInk = (s) => "color-mix(in srgb, #c4b5a0 " + Math.round(100 * lastDay(s)) + "%, #0d0a09)";
+    const ep = (s) => '<span class="ep" data-exp="' + s.expiry + '" style="color:' + lifeInk(s) + '">' + epText(s) + "</span>";
+    const routeOf = (s) => { const b = s.ash || s.seed; return b ? ROUTES[b[5] % ROUTES.length].name : ""; };
+    const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const day = (t) => { const d = new Date(t * 1000); return pad(d.getDate()) + " " + MON[d.getMonth()]; };
+    const short = (h) => h.slice(0, 6) + "…" + h.slice(-4);
+    function leftLong(s) {
+      const ms = Math.max(0, (s.expiry - now()) * 1000);
+      if (!ms) return "pruned";
+      return Math.floor(ms / 864e5) + "d " + pad(Math.floor(ms % 864e5 / 36e5)) + "h " + pad(Math.floor(ms % 36e5 / 6e4)) + "m " + pad(Math.floor(ms % 6e4 / 1e3)) + "s";
+    }
+    const tl = (s, long) => '<span class="tl' + (long ? " L" : "") + '" data-exp="' + s.expiry + '">' + (long ? leftLong(s) : left(s)) + "</span>";
+    const mark = (s) => '<span class="td k">∞</span>';
+    const status = (s, m) => s.minted ? mark(s, m) : tl(s, true) + " left";
+    const blank = () => Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => (r === 4 && c === 4 ? CENTER : " ")));
+    const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+    const rect = (e) => e.getBoundingClientRect();
+    const narrow = () => innerWidth < 640;
+    const CWS = new Map();
+    function cw(px) {
+      if (CWS.has(px)) return CWS.get(px);
+      const s = el("span", null, "0".repeat(60)); s.style.cssText = "position:absolute;visibility:hidden;white-space:pre;font-family:'JetBrains Mono',monospace;font-size:" + px + "px";
+      document.body.appendChild(s); const w = rect(s).width / 60; s.remove(); CWS.set(px, w); return w;
+    }
+    const rem = (r) => r * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    function bar(s, w, inf = true) {
+      w = Math.max(1, w);
+      if (s.minted) return "";
+      return '<span class="hb" data-exp="' + s.expiry + '"><span class="fg" style="width:' + (lifeLeft(s) * 100).toFixed(3) + '%;opacity:' + lifeOpacity(s) + ';background:' + lifeInk(s) + '"></span></span>';
+    }
+    let lastEpoch = null;
+    setInterval(() => {
+      document.querySelectorAll(".tl").forEach(e => { const s = { expiry: +e.dataset.exp }; e.textContent = e.classList.contains("L") ? leftLong(s) : left(s); });
+      const e0 = epochNow(); if (e0 === lastEpoch) return; const first = lastEpoch === null; lastEpoch = e0;
+      document.querySelectorAll(".hb .fg").forEach(e => {
+        const was = parseFloat(e.style.width), w = lifeLeft({ expiry: +e.parentNode.dataset.exp }) * 100;
+        e.style.width = w.toFixed(3) + "%"; e.style.opacity = lifeOpacity({ expiry: +e.parentNode.dataset.exp }); e.style.background = lifeInk({ expiry: +e.parentNode.dataset.exp });
+        if (!first && was > w) { const h = document.createElement("span"); h.className = "hit"; h.style.left = w + "%"; h.style.width = Math.max(was - w, 0.6) + "%"; e.parentNode.appendChild(h); setTimeout(() => h.remove(), 1500); }
+      });
+      document.querySelectorAll(".ep").forEach(e => { const x = { expiry: +e.dataset.exp }; e.innerHTML = epText(x); e.style.color = lifeInk(x); });
+      document.querySelectorAll("svg.seal[data-exp]").forEach(e => { const x = { expiry: +e.dataset.exp }; e.style.opacity = lifeOpacity(x); e.classList.remove("dying"); });
+    }, 1000);
+    const waveAt = (s) => { const n = DATA ? DATA.seals.length : 1; return Math.round((s.n - 1) * (5000 * sp()) / n); };
+    function fadeIn(node, s, delay = waveAt(s)) {
+      node.style.opacity = "0"; node.style.transition = "opacity 650ms ease-out " + delay + "ms";
+      requestAnimationFrame(() => requestAnimationFrame(() => { node.style.opacity = "1"; }));
+    }
+    let allIn = null;
+    const settled = () => allIn || (allIn = Promise.all(DATA.seals.map(x => x.ready).concat(DATA.seals.filter(x => x.artReady).map(x => x.artReady)))
+      .then(() => new Promise(r => setTimeout(r, 2600))));
+    function light(svg, s) {
+      if (!loopOn() || !s.minted) return;
+      lightNow(svg, s);
+    }
+    const LIGHT = [], PERIOD = 5000, UP = 0.056 * PERIOD, DOWN = 0.14 * PERIOD, T0 = performance.now();
+    const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    function lightNow(svg, s) {
+      lightSeal(svg, s.ash || s.seed);
+      const off = waveAt(s), start = performance.now() - T0;
+      const ws = [...svg.querySelectorAll(".w")].map(w => { const at = start + parseFloat(w.style.animationDelay || 0) + off; w.style.animation = "none"; w.style.opacity = "0"; return { w, at, on: false }; });
+      LIGHT.push({ svg, ws });
+    }
+    (function drive() {
+      const t = performance.now() - T0;
+      for (const L of LIGHT) {
+        if (L.svg.classList.contains("off") || !L.svg.isConnected) continue;
+        for (const x of L.ws) {
+          const p = t - x.at; if (p < 0) continue;
+          const q = p % PERIOD, o = q < UP ? ease(q / UP) : q < DOWN ? ease(1 - (q - UP) / (DOWN - UP)) : 0;
+          if (o > 0) { x.w.style.opacity = o.toFixed(3); x.on = true; } else if (x.on) { x.w.style.opacity = "0"; x.on = false; }
+        }
+      }
+      requestAnimationFrame(drive);
+    })();
+    function kickArt(seals) { const p = tokenArt(seals); seals.filter(x => x.minted).forEach(x => { x.artReady = p; }); }
+    function seal(s, size) {
+      if (false && s.minted && !("artFrom" in s) && s.artReady) {
+        const hold = document.createElement("span"); hold.style.cssText = "display:inline-block;width:" + size + "px;height:" + size + "px";
+        s.artReady.then(() => hold.replaceWith(seal(s, size)));
+        return hold;
+      }
+      if (false && s.art) {
+        const im = document.createElement("img"); im.className = "seal art lit"; im.alt = ""; im.style.visibility = "hidden";
+        im.setAttribute("aria-label", "Seal, token #" + s.minted); im.onload = () => { im.style.visibility = ""; };
+        setTimeout(() => { im.src = s.art; }, Math.min((s.at ?? s.n - 1) * 45, 1400));
+        if (size) { im.style.width = size + "px"; im.style.height = size + "px"; }
+        return im;
+      }
+      const svg = document.createElementNS(NS, "svg");
+      if (size) { svg.style.width = size + "px"; svg.style.height = size + "px"; }
+      s.ready.then((g) => {
+        drawSeal(svg, g || blank(), { style: 2 });
+        if (s.minted) { svg.style.visibility = "visible"; svg.classList.add("kept", "lit"); light(svg, s); watch(svg); return; }
+        svg.style.visibility = "visible"; svg.style.willChange = "opacity"; svg.style.opacity = "0";
+        svg.style.transition = "opacity 900ms ease-out " + Math.min((s.at ?? s.n - 1) * 45, 1400) + "ms";
+        if (!s.minted) svg.dataset.exp = s.expiry;
+        requestAnimationFrame(() => requestAnimationFrame(() => { svg.style.opacity = lifeOpacity(s); }));
+        svg.addEventListener("transitionend", () => { svg.style.willChange = ""; }, { once: true });
+        if (s.minted) svg.classList.add("kept", "lit");
+        light(svg, s); watch(svg);
+      });
+      return svg;
+    }
+    const IO = new IntersectionObserver((es) => es.forEach(e => e.target.classList.toggle("off", !e.isIntersecting)));
+    const watch = (n) => IO.observe(n);
+    async function tokenArt(seals) {
+      const kept = seals.filter(s => s.minted); let res = null;
+      try {
+        const body = kept.map(s => ({ jsonrpc: "2.0", id: s.minted, method: "eth_call", params: [{ to: CONTRACT, data: "0xc87b56dd" + s.minted.toString(16).padStart(64, "0") }, "latest"] }));
+        if (body.length) res = await (await fetch(RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })).json();
+      } catch {}
+      const b64 = (x) => new TextDecoder().decode(Uint8Array.from(atob(x), c => c.charCodeAt(0)));
+      const uri = (u) => u.startsWith("data:") && /;base64,/.test(u.slice(0, 60)) ? b64(u.split(",")[1]) : decodeURIComponent(u.slice(u.indexOf(",") + 1));
+      for (const s of kept) {
+        s.art = null; s.artFrom = "ash";
+        try {
+          const r = Array.isArray(res) && res.find(x => x.id === s.minted); if (!r || !r.result) continue;
+          const h = r.result.slice(2), off = parseInt(h.slice(0, 64), 16) * 2, len = parseInt(h.slice(off, off + 64), 16);
+          const meta = JSON.parse(uri(new TextDecoder().decode(bytes(h.slice(off + 64, off + 64 + len * 2)))));
+          let svg = meta.animation_url ? (uri(meta.animation_url).match(/<svg[\s\S]*<\/svg>/) || [null])[0] : null;
+          if (!svg && meta.image) svg = uri(meta.image);
+          if (!svg) continue;
+          s.art = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); s.artFrom = "chain";
+        } catch {}
+      }
+    }
+    function box(s, size) {
+      const b = el("div", "box" + (s.minted ? " kept" : "")); if (size) b.style.width = size + "px"; b.appendChild(seal(s));
+      if (!s.glyphs && !s.minted) { b.classList.add("wait"); s.ready.then(() => setTimeout(() => b.classList.remove("wait"), 300)); }
+      return b;
+    }
+    function cap(s, width) {
+      const c = el("div", "cap" + (s.minted ? " kept" : "")), n = Math.floor(width / cw(rem(0.66)));
+      c.append(el("div", "l", s.minted ? "<span>✠ #" + s.minted + "</span><span>kept ∞</span>" : "<span>" + pad(s.n) + "</span><span>" + tl(s) + "</span>"));
+      c.append(el("div", "bar" + (s.minted ? " k" : ""), bar(s, n)));
+      return c;
+    }
+    function fit(n, W, H, cap, gap, min = 0, max = 1e9) {
+      let best = { cols: 1, size: 0 };
+      for (let cols = 1; cols <= n; cols++) {
+        const rows = Math.ceil(n / cols), size = Math.min((W - gap * (cols - 1)) / cols, (H - gap * (rows - 1)) / rows - cap);
+        if (size > best.size) best = { cols, rows, size: Math.floor(size) };
+      }
+      if (best.size < min) { const cols = Math.max(1, Math.floor((W + gap) / (min + gap))); best = { cols, rows: Math.ceil(n / cols), size: Math.floor((W - gap * (cols - 1)) / cols) }; }
+      if (best.size > max) { const cols = Math.min(n, Math.max(1, Math.floor((W + gap) / (max + gap)))); best = { cols, rows: Math.ceil(n / cols), size: max }; }
+      return best;
+    }
+    function linkBlob(root) {
+      root.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-n]"); if (!t || !DATA) return;
+        const x = DATA.seals.find(q => String(q.n) === t.dataset.n); if (x) location.href = "../seal/#" + x.blobHash.toLowerCase();
+      });
+      root.querySelectorAll("[data-n]").forEach(x => x.style.cursor = "pointer");
+    }
+    function linkHover(root) {
+      root.addEventListener("mouseover", (e) => {
+        const t = e.target.closest("[data-n]"); const n = t ? t.dataset.n : null;
+        root.querySelectorAll(".hl").forEach(x => { if (x.dataset.n !== n) x.classList.remove("hl"); });
+        if (n) root.querySelectorAll('[data-n="' + n + '"]').forEach(x => x.classList.add("hl"));
+      });
+      root.addEventListener("mouseleave", () => root.querySelectorAll(".hl").forEach(x => x.classList.remove("hl")));
+    }
+    function ledger(seals, W, H, { m = "both", thumbs = true, minRh = 30, maxRh = 46, barW = 18, fs = 0.78, head = true } = {}) {
+      const px = rem(fs), c = cw(px), slim = W < 640, gap = 2 * c;
+      const chars = slim ? [3, barW = 10, 22] : [3, 6, 6, 14, 10];
+      const spec = (rh) => (thumbs ? [rh - 4 + "px"] : []).concat(chars.map(n => Math.ceil(n * c) + "px"));
+      const width = (rh) => (thumbs ? rh - 4 + gap : 0) + chars.reduce((a, n) => a + n * c + gap, 0) + rem(0.8);
+      let k = 1, rh = maxRh;
+      for (k = 1; k <= 3; k++) {
+        rh = Math.min(maxRh, Math.floor((H - (head ? rem(1.6) + 2 : 0)) / Math.ceil(seals.length / k)));
+        if (rh >= minRh) break;
+        if (k * width(minRh) + (k) * rem(3) > W) { k = Math.max(1, k - (k > 1 ? 1 : 0)); rh = minRh; break; }
+      }
+      if (slim) { k = 1; rh = Math.max(rh, minRh); }
+      if (k > 3) { k = 3; rh = minRh; }
+      const L = el("div", "ledger"); L.style.fontSize = px + "px";
+      L.style.setProperty("--cols", spec(rh).join(" ")); L.style.setProperty("--gap", gap + "px"); L.style.setProperty("--rh", rh + "px");
+      const per = Math.ceil(seals.length / k);
+      for (let j = 0; j < k; j++) {
+        const col = el("div", "lcol");
+        if (head) { const h = el("div", "lr head"); const keys = { "#": "n", "minted": "minted", "date": "cast", "light": "light", "time left": "life" };
+          (thumbs ? [""] : []).concat(slim ? ["#", "until forgotten", "time left"] : ["#", "minted", "date", "light", "time left"]).forEach(t => {
+            const k = keys[t], sp = el("span", k ? "sort" + (SORT.key === k ? " on" : "") : null, t + (SORT.key === k ? (SORT.dir > 0 ? " ▴" : " ▾") : ""));
+            if (k) { sp.dataset.sort = k; sp.addEventListener("click", (e) => { e.stopPropagation(); SORT = { key: k, dir: SORT.key === k ? -SORT.dir : (k === "life" ? 1 : -1) }; go(cur); }); }
+            h.append(sp); });
+          col.append(h); }
+        seals.slice(j * per, (j + 1) * per).forEach(s => {
+          const r = el("div", "lr" + (s.minted ? " kept" : "")); r.dataset.n = s.n; r.title = s.blobHash; fadeIn(r, s, Math.min((s.at ?? s.n - 1) * 15, 450));
+          if (thumbs) { const t = el("span", "th"); t.appendChild(seal(s, rh - 6)); r.append(t); }
+          r.append(el("span", "n", pad(s.n)));
+          if (!slim) r.append(el("span", s.minted ? "yes" : "no", s.minted ? "#" + s.minted : "no"), el("span", null, day(s.castAt)));
+          r.append(el("span", "light", routeOf(s)));
+          r.append(el("span", null, s.minted ? (slim ? (m === "inf" ? "∞" : "✠") + " #" + s.minted : mark(s, m)) : ep(s)));
+          col.append(r);
+        });
+        L.append(col);
+      }
+      L.__w = k * width(rh) + (k - 1) * rem(3);
+      return L;
+    }
+
+    const V = [
+      { k: "A", name: "tiles", desc: "<b>A · tiles</b>: round 1's grid, each tile now carries a ledger caption: number, time left, a ▓░ life bar. kept = hot frame, ✠ token, bar runs full.",
+        run(root, seals) {
+          const r = rect(root), f = fit(seals.length, r.width, r.height, rem(0.66) * 2 * 1.9 + 4, 16, narrow() ? 96 : 92);
+          const g = el("div", "ga"); g.style.gridTemplateColumns = `repeat(${f.cols}, ${f.size}px)`; g.style.gap = "10px 16px";
+          seals.forEach(s => { const c = el("div", "cell"); c.append(box(s, f.size), cap(s, f.size)); g.append(c); });
+          root.append(g);
+        } },
+
+      { k: "B", name: "ledger + seals", desc: "<b>B · ledger + seals</b>: round 1's ledger with a small Seal as the first column. too many rows for one column, so it flows into two.",
+        run(root, seals) {
+          const r = rect(root), L = ledger(seals, r.width, r.height, { minRh: 34, maxRh: 52 });
+          const w = el("div"); w.style.cssText = "min-height:100%;display:flex;align-items:center;justify-content:center"; w.append(L); root.append(w);
+          linkHover(root);
+        } },
+
+      { k: "C", name: "two panes", desc: "<b>C · two panes</b>: the grid on the left, the ledger on the right. hover a Seal or a row and its twin lights up across.",
+        run(root, seals) {
+          const r = rect(root), g = el("div", "gc"), slim = narrow();
+          const L = ledger(seals, slim ? r.width : r.width * 0.56, slim ? 1e4 : r.height, { m: "inf", thumbs: false, minRh: 20, maxRh: 26, fs: 0.74 });
+          const gw = slim ? r.width : Math.min(r.width - L.__w - rem(2.4), r.height * 1.2);
+          const f = fit(seals.length, gw, slim ? 1e4 : r.height, 0, 8, slim ? 54 : 0, slim ? 70 : 1e9);
+          const grid = el("div", "grid"); grid.style.gridTemplateColumns = `repeat(${f.cols}, ${f.size}px)`; grid.style.gap = "8px";
+          seals.forEach(s => { const b = box(s, f.size); b.dataset.n = s.n; grid.append(b); });
+          g.append(grid, L); root.append(g);
+          linkHover(root);
+        } },
+
+      { k: "D", name: "kept up top", desc: "<b>D · kept up top</b>: the minted Seals as a hot row, then the ledger of the rest, next to go first.",
+        run(root, seals) {
+          const r = rect(root), slim = narrow(), kept = seals.filter(s => s.minted), rest = seals.filter(s => !s.minted).sort((a, b) => a.expiry - b.expiry);
+          const g = el("div", "gd");
+          const ks = Math.floor(Math.min(slim ? 96 : r.height * 0.24, (r.width - rem(1.6) * (kept.length - 1)) / Math.max(1, kept.length), 170));
+          const shelf = el("div", "shelf");
+          kept.forEach(s => {
+            const c = el("div", "cell"); c.dataset.n = s.n;
+            const cp = el("div", "cap kept", "<div class=\"l\"><span>✠ token #" + s.minted + "</span></div><div class=\"l\"><span>cast " + day(s.castAt) + "</span></div>");
+            c.style.width = ks + "px"; c.append(box(s, ks), cp); shelf.append(c);
+          });
+          const l1 = el("div", "lbl k", "<span>✠ kept for good</span><span>" + kept.length + " tokens on Ethereum</span>"), l2 = el("div", "lbl", "<span>in blob space · next to go first</span><span>" + rest.length + " left</span>");
+          g.append(l1, shelf, l2); root.append(g);
+          const used = rect(l2).bottom - rect(l1).top + rem(0.8) + 4;
+          const L = ledger(rest, r.width, slim ? 1e4 : r.height - used, { m: "cross", minRh: 26, maxRh: 40, fs: 0.74 });
+          const lw = Math.min(r.width, Math.max(L.__w, rect(root).width * 0.5));
+          [l1, l2].forEach(l => { l.style.alignSelf = "center"; l.style.width = lw + "px"; });
+          g.append(L);
+          linkHover(root);
+        } },
+
+      { k: "E", name: "terminal", nav: "↑↓ select", desc: "<b>E · terminal</b>: a dense grid of tiny Seals inside a terminal: a summary up top, a bar under each, and the selected one's full ledger row at the bottom.",
+        run(root, seals) {
+          const r = rect(root), slim = narrow(), g = el("div", "ge"), term = el("div", "term");
+          const rest = seals.filter(s => !s.minted), next = rest.slice().sort((a, b) => a.expiry - b.expiry)[0];
+          const hd = el("div", "hd", '<span class="p">ee@remi.gg:~$</span> ls blobspace --seals\n' + seals.length + " cast · <span class=\"hot\">" + (seals.length - rest.length) + " kept ✠</span> · " + rest.length + " in blob space" +
+            (next ? " · next to go #" + pad(next.n) + " in " + tl(next, true) : "") + " · a blob lives ~18d");
+          const ft = el("div", "ft");
+          const inner = r.width - rem(2.4) - 2, gridH = slim ? 1e4 : r.height - rem(1.8) - rem(1.6) * 3 - rem(2.8) - 4;
+          const f = fit(seals.length, inner, gridH, rem(1) + 4, 10, slim ? 44 : 0, 78);
+          const grid = el("div", "grid"); grid.style.gridTemplateColumns = `repeat(${f.cols}, ${f.size}px)`; grid.style.gap = "10px";
+          const n = Math.floor(f.size / cw(rem(0.56)));
+          let sel = seals.indexOf(next || seals[0]);
+          const tiles = seals.map((s, i) => {
+            const t = el("div", "t" + (s.minted ? " kept" : "")); t.dataset.i = i;
+            t.append(box(s), el("div", "bar", s.minted ? "∞ #" + s.minted : bar(s, n)));
+            t.addEventListener("mouseenter", () => show(i)); grid.append(t); return t;
+          });
+          const fc = cw(rem(slim ? 0.68 : 0.78)), bw = slim ? 10 : 24;
+          const show = (i) => {
+            sel = (i + seals.length) % seals.length; const s = seals[sel];
+            tiles.forEach((t, j) => t.classList.toggle("on", j === sel));
+            ft.className = "ft" + (s.minted ? " kept" : "");
+            ft.innerHTML = "#" + pad(s.n) + "  " + short(s.blobHash) + "  cast " + day(s.castAt) + "  <span class=\"bar" + (s.minted ? " k" : "") + "\">" + bar(s, bw) + "</span>  " + status(s, "inf") + ' <span class="cur">&nbsp;</span>';
+          };
+          term.append(hd, el("div", "rule"), grid, el("div", "rule"), ft); g.append(term); root.append(g);
+          show(sel);
+          return { key: (d) => show(sel + d) };
+        } },
+
+      { k: "F", name: "day log", desc: "<b>F · day log</b> (Claude's pick): the ledger read as a log, one line per cast day. each day's Seals sit in a row with their caption; the left column keeps the count.",
+        run(root, seals) {
+          const r = rect(root), slim = narrow(), g = el("div", "gf");
+          const days = []; seals.forEach(s => { const d = day(s.castAt); let x = days.find(y => y.d === d); if (!x) days.push(x = { d, s: [] }); x.s.push(s); });
+          const most = Math.max(...days.map(x => x.s.length)), capH = rem(0.66) * 2 * 1.9 + 4;
+          const rowW = r.width - rem(8.5) - rem(1.4), gx = rem(0.9);
+          let size = 80;
+          if (slim) size = Math.floor((r.width - 3 * gx) / 4);
+          else for (let z = 150; z >= 80; z -= 2) {
+            const cols = Math.max(1, Math.floor((rowW + gx) / (z + gx)));
+            const h = days.reduce((a, x) => a + Math.ceil(x.s.length / cols) * (z + capH + rem(0.5)) + rem(1.1) + 1, 0);
+            if (h <= r.height) { size = z; break; }
+          }
+          days.forEach(x => {
+            const row = el("div", "day"), kept = x.s.filter(s => s.minted).length;
+            row.append(el("div", "meta", "<b>" + x.d + "</b>" + x.s.length + " cast" + (kept ? ' · <span class="k">' + kept + " kept ✠</span>" : "")));
+            const tiles = el("div", "row");
+            x.s.forEach(s => { const c = el("div", "cell"); c.style.width = size + "px"; c.append(box(s, size), cap(s, size)); tiles.append(c); });
+            row.append(tiles); g.append(row);
+          });
+          root.append(g);
+        } },
+
+      { k: "G", name: "scroll", desc: "<b>G</b>: one grid of Seals beside one ledger, the page scrolls.",
+        run(root, seals) {
+          const val = { n: x => x.n, minted: x => x.minted ? 2000 - x.minted : 0, cast: x => x.castAt || 0, light: x => -ROUTES.findIndex(q => q.name === routeOf(x)), life: x => x.minted ? Infinity : (x.expiry || 0) }[SORT.key];
+          seals = seals.slice().sort((a, b) => (val(a) - val(b)) * SORT.dir || b.n - a.n); seals.forEach((x, k) => { x.at = k; });
+          root.style.overflowY = "auto";
+          const r = rect(root), g = el("div", "gc"), slim = narrow();
+          g.style.alignItems = "flex-start";
+          const L = ledger(seals, slim ? r.width : r.width * 0.56, 1e4, { m: "inf", thumbs: false, minRh: 26, maxRh: 30, fs: 0.78 });
+          L.querySelectorAll("[title]").forEach(x => x.removeAttribute("title"));
+          const gw = slim ? r.width : r.width - L.__w - rem(2.4);
+          const f = fit(seals.length, gw, 1e4, 0, 10, slim ? 54 : 132, slim ? 80 : 168);
+          const side = el("div"); side.style.cssText = "align-self:flex-start;display:flex;flex-direction:column;gap:0;align-items:stretch";
+          const grid = el("div", "grid"); grid.style.gridTemplateColumns = `repeat(${f.cols}, ${f.size}px)`; grid.style.gap = "10px";
+          seals.forEach(x => { const b = box(x, f.size); b.dataset.n = x.n; grid.append(b); });
+          const head = el("div", "lr head", "Ephemeral and eternal");
+          head.style.cssText = "display:flex;align-items:center;margin-bottom:2px;padding:0 0.1rem";
+          side.append(head, grid); g.append(side, L); root.append(g);
+          const more = el("div", "more"); document.getElementById("stage").appendChild(more);
+          const hint = () => {
+            const rows = [...L.querySelectorAll(".lr:not(.head)")].concat([...grid.children]), vb = root.getBoundingClientRect().bottom;
+            const hidden = [...L.querySelectorAll(".lr:not(.head)")].filter(q => q.getBoundingClientRect().top > vb - 8).length;
+            const any = rows.some(q => q.getBoundingClientRect().bottom > vb + 2);
+            root.classList.toggle("fade", any); more.textContent = hidden ? "↓ " + hidden + " more" : any ? "↓ more" : ""; more.style.opacity = any ? "1" : "0";
+          };
+          root.addEventListener("scroll", hint, { passive: true }); requestAnimationFrame(hint); setTimeout(hint, 400);
+          linkHover(root);
+          linkBlob(root);
+        } },
+    ];
+
+    V.splice(0, V.length, ...V.filter(v => v.k === "G"));
+    let cur = 0, live = null;
+    function art() {
+      const k = DATA.seals.filter(s => s.minted); if (!k.length || !("artFrom" in k[0])) return "";
+      const c = k.filter(s => s.artFrom === "chain").length;
+      return '<br><span class="' + (c === k.length ? "dim" : "src fx") + '">art ' + (c === k.length ? "tokenURI " + c + "/" + k.length : "ash fallback " + (k.length - c) + "/" + k.length) + "</span>";
+    }
+    function tag() { if (!document.getElementById("tag")) return;
+      const v = V[cur]; if (!DATA) { $("tag").innerHTML = "<b>" + v.k + " · " + v.name + "</b> " + (cur + 1) + "/" + V.length + " · ←→"; return; }
+      const read = DATA.seals.filter(s => s.from).length, froms = [...new Set(DATA.seals.map(s => s.from).filter(Boolean))].join(" + ");
+      $("tag").innerHTML = "<b>" + v.k + " · " + v.name + "</b> " + (cur + 1) + "/" + V.length + " · ←→" + (v.nav ? " · " + v.nav : "") +
+        '<br><span class="src' + (DATA.src === "fixture" ? " fx" : "") + '">' + DATA.src + "</span> · " + DATA.seals.length + " cast · " + DATA.mints + " minted" +
+        '<br><span class="dim">glyphs ' + read + "/" + DATA.seals.length + " · " + froms + "</span>" + art();
+    }
+    function go(k) {
+      LIGHT.length = 0; document.querySelectorAll("#stage > .more").forEach(m => m.remove());
+      cur = (k + V.length) % V.length;
+      if (live && live.stop) live.stop();
+      const stage = $("stage"); stage.textContent = "";
+      const root = el("div", "v"); stage.appendChild(root);
+
+      if (!DATA) return;
+      live = V[cur].run(root, DATA.seals) || null;
+    }
+    addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT") e.target.blur();
+      if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+      else if (/^[1-9]$/.test(e.key) && +e.key <= V.length) go(+e.key - 1);
+      else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && live && live.key) { e.preventDefault(); live.key(e.key === "ArrowDown" ? 1 : -1); }
+    });
+    let rs; addEventListener("resize", () => { clearTimeout(rs); rs = setTimeout(() => go(cur), 250); });
+    go(cur);
+    (async () => {
+      await document.fonts.ready;
+      const q = await quick(); if (q) { DATA = q; CWS.clear(); go(cur); }
+      const live = await load(false);
+      const key = (d) => d.seals.map(x => x.blobHash + ":" + (x.minted || "")).join();
+      if (!q || key(q) !== key(live)) { DATA = live; allIn = null; CWS.clear(); go(cur); }
+    })();
+  })();
+  </script>
+  <script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]nudge/.test(location.search)) { const s = document.createElement("script"); s.src = "/ee/nudge.js"; document.body.appendChild(s); }</script>
+</body>
+</html>

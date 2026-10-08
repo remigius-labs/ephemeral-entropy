@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Ephemeral Entropy</title>
+  <meta property="og:title" content="Ephemeral Entropy">
+  <meta property="og:description" content="Write a message. It becomes a Seal, cast into Ethereum blob space for free, 18 days. Keep it as an NFT for 0.00777 ETH, one thousand ever.">
+  <meta property="og:image" content="https://remi.gg/ee/og.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&text=%E2%95%94%E2%95%97%E2%95%9A%E2%95%9D%E2%95%91%E2%95%90%E2%95%A6%E2%95%A9%E2%95%A0%E2%95%A3%C2%B7%E2%88%99%E2%80%87%E2%88%98%E2%97%A6%E2%8A%B9%E2%9C%A7%E2%97%87%E2%97%8B%E2%97%8A%E2%9C%A6%E2%97%86%E2%97%8F%E2%98%85%E2%97%89%E2%9C%A0%E2%8A%99%E2%97%B0%E2%97%B3%E2%97%B1%E2%97%B2%E2%96%A3%E2%9D%96%E2%97%A4%E2%97%A5%E2%97%A3%E2%97%A2%E2%96%B2%E2%96%BC%E2%97%80%E2%96%B6%E2%97%88%E2%96%91%E2%96%92%E2%96%93%E2%96%88%E2%96%80%E2%96%84%E2%94%82%E2%94%80%E2%94%BC&display=swap">
+  <link rel="stylesheet" href="../entropy.css?v=16">
+  <style>
+    body { animation: none !important; }
+    main, #write { align-items: center; }
+    body { padding-top: 0.5rem; padding-bottom: 1.6rem; box-sizing: border-box; }
+    footer.by { position: fixed; left: 0; right: 0; bottom: 0.45rem; margin: 0; text-align: center; pointer-events: none; }
+    footer.by a { pointer-events: auto; }
+    h1 { align-self: center; text-align: center; width: 100%; }
+    h1 a.home { color: inherit; text-decoration: none; }
+    h1 { font-size: clamp(1.45rem, 3.6vh, 2.2rem); }
+    main, #write { flex: 1; }
+    .wiz { width: 100%; max-width: 24rem; margin: 0 auto 0; text-align: center; }
+    @media (min-width: 641px) { main { width: min(46rem, 100%); } .wiz { max-width: clamp(24rem, 70vh, 46rem); } }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 1.2rem; margin: 0.35rem 0 0.25rem; }
+      #wallet { display: none !important; }
+      .wiz { max-width: 100%; }
+      .wiz .lead, .lbl { margin: 0.15rem 0 0.3rem !important; font-size: 0.72rem; }
+      #hashbox { padding: 0.45rem 0.6rem; }
+      .grp { padding: 0.05rem 0.6rem 0.35rem; margin-top: 0.3rem; }
+      .grp legend { font-size: 0.62rem; }
+      .act.two { gap: 0.6rem; }
+      .act.two button { padding: 0.3rem 0.3rem 0.25rem; font-size: 0.78rem; }
+      .act.two button .sub { font-size: 0.6rem; }
+      .under { margin-top: 0.15rem; font-size: 0.64rem; }
+      .share { gap: 0.3rem 0.6rem; padding-top: 0.2rem; grid-template-columns: 1fr 1fr; }
+      .share a.x { padding: 0.32rem 0.3rem; font-size: 0.8rem; }
+      .share a.half { padding: 0.14rem 0.3rem; font-size: 0.66rem; }
+      footer.by { font-size: 0.62rem; bottom: 0.3rem; }
+    }
+    .wiz form { margin-top: 0.2rem; }
+    .wiz .lead { margin: 0 0 0.6rem; }
+    .wiz .lead { margin: 0 0 0.6rem; color: #9a8d7c; font-size: 0.85rem; }
+    #boxwrap { position: relative; display: inline-block; width: 100%; transition: width 320ms ease; }
+    #box { display: inline-block; width: 100%; box-sizing: border-box; background: #000; border: 1px solid #6b5f52; text-align: left; overflow: hidden; transition: width 320ms ease, height 320ms ease; }
+    #box:focus-within { border-color: #6b5f52; }
+    #msg { display: block; width: 100%; height: 9rem; box-sizing: border-box; resize: none; padding: 0.8rem; background: transparent; border: 0; color: #c4b5a0; font: inherit; font-size: 0.875rem; line-height: 1.5; }
+    #msg:focus { outline: none; }
+    #box { position: relative; }
+    #box { animation: boxin 520ms cubic-bezier(0.2, 0.6, 0.3, 1) 520ms both; }
+    #box.unlined { border-color: transparent; }
+    #box.done, #box.done:focus-within { border-color: #2a231e; }
+    svg.drawline { position: absolute; pointer-events: none; overflow: visible; z-index: 2; }
+    svg.drawline rect { fill: none; stroke: #2a231e; stroke-width: 1; }
+    @keyframes boxin { from { opacity: 0; clip-path: inset(0 50% 0 50%); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+    #act1 { animation: boxin 420ms cubic-bezier(0.2, 0.6, 0.3, 1) 1080ms both; }
+    @media (prefers-reduced-motion: reduce) { #box, #act1 { animation: none; } }
+    #hint { position: absolute; left: 0; right: 0; top: 0; padding: 0.8rem; font-size: 0.875rem; line-height: 1.5; color: #4d4239; pointer-events: none; white-space: pre-wrap; }
+    #hint .bar { display: inline-block; width: 0.62em; height: 1.2em; margin-left: 0.1em; vertical-align: -0.22em; background: #c4b5a0; animation: hintblink 1.06s steps(1, end) infinite; }
+    @keyframes hintblink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+    #msg::placeholder { color: transparent; }
+    #box:not(:has(#msg:placeholder-shown)) #hint, #box.engaged #hint, #box:has(#msg[hidden]) #hint { display: none; }
+    #box:has(#msg:placeholder-shown):not(.engaged) #msg { caret-color: transparent; }
+    html.lab h1, html.lab #lead, html.lab .act, html.lab #s2, html.lab #s3, html.lab footer, html.lab .q { display: none !important; }
+    html.lab body { padding: 0.6rem; justify-content: center; }
+    html.lab main, html.lab #write { justify-content: center; }
+    html.lab .wiz { margin: 0 auto; }
+    #s2[hidden], #hashbox[hidden], #msg[hidden], .act[hidden] { display: none; }
+    #hashbox { padding: 0.8rem; font-size: 0.875rem; line-height: 1.5; color: #c4b5a0; white-space: pre; text-align: center; }
+    #hashbox.asWritten { white-space: pre-wrap; text-align: left; overflow-wrap: anywhere; }
+    #hashbox .stack { display: flex; flex-direction: column; white-space: pre; }
+    #hashbox .bar { transform-origin: left; transition: color 160ms ease-out, font-size var(--settle, 0ms) ease-out, line-height var(--settle, 0ms) ease-out, transform var(--settle, 0ms) ease-out; }
+    #hashbox .bar.hit { color: #f3ebdd; transition-duration: 0ms, var(--settle, 0ms), var(--settle, 0ms), var(--settle, 0ms); }
+    #hashbox span { opacity: 1; }
+    #hashbox.lit span { opacity: 0.3; }
+    #hashbox.lit span.on { opacity: 1; }
+    #lead { white-space: pre; min-height: 1.6em; }
+    #lead.lbl-now { color: #6b5f52; }
+    .lbl { margin: 0.5rem 0 0.6rem; font-size: 0.75rem; letter-spacing: 0.12em; color: #6b5f52; text-align: center; }
+    .lbl[hidden] { display: none; }
+    .lbl { position: relative; }
+    .q.inlbl { top: 0; height: 100%; }
+    .q { position: absolute; right: 0; top: -1.5em; display: flex; align-items: center; font-size: 0.75rem; color: #6b5f52; cursor: help; letter-spacing: 0; }
+    .q[hidden] { display: none; }
+    .q:hover, .q:focus { color: #c4b5a0; outline: none; }
+    .q::after { content: attr(data-tip); position: absolute; left: calc(100% + 0.7em); top: 0; width: 22rem; max-width: 80vw; padding: 0.6rem 0.8rem; background: #000; border: 1px solid #6b5f52; color: #c4b5a0; font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; text-align: left; white-space: pre-line; text-transform: none; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+    .q:hover::after, .q:focus::after { opacity: 1; }
+    @media (max-width: 52rem) { .q::after { left: auto; right: 0; top: 1.6em; } }
+    #sealbox { position: relative; width: 100%; box-sizing: border-box; background: #000; border: 1px solid #2a231e; overflow: hidden; transition: height 380ms ease; }
+    #status { margin: 0.3rem auto 0; font-size: 0.8rem; line-height: 1.7; color: #c4b5a0; text-align: center; }
+    #status:empty { display: none; }
+    #status .bit { white-space: nowrap; }
+
+    #status[hidden] { display: none; }
+    #status a { color: #c4b5a0; text-decoration: none; border-bottom: 1px solid #6b5f52; }
+    #status .bad, .under .bad { color: #a04030; }
+    #status .dots { display: inline-block; width: 3ch; text-align: left; }
+    #sealbox[hidden] { display: none; }
+    #square { display: block; width: 100%; height: auto; max-height: 100%; max-width: 100%; width: auto; margin: 0 auto; }
+    #s3[hidden] { display: none; }
+    .act { display: flex; justify-content: center; margin-top: 0.9rem; }
+    .act button { font: inherit; font-size: 0.85rem; color: #c4b5a0; background: linear-gradient(#c4b5a0, #c4b5a0) no-repeat left center / 0% 100%; border: 1px solid #6b5f52; padding: 0.3rem 0.9rem; cursor: pointer; letter-spacing: 0.05em;
+      transition: background-size 140ms cubic-bezier(0.25, 0.8, 0.3, 1), color 90ms linear 30ms, border-color 140ms ease, opacity 140ms ease; }
+    .act button:hover:not(:disabled) { background-size: 100% 100%; color: #000; }
+    .act button:focus { outline: none; }
+    .act button:disabled { opacity: 0.35; cursor: default; }
+    .act button.pending:disabled { opacity: 1; cursor: default; }
+    #b1:not(:disabled), #b2:not(:disabled) { background-size: 100% 100%; color: #000; border-color: #c4b5a0; }
+    #b1:not(:disabled):hover, #b2:not(:disabled):hover { background-image: linear-gradient(#fff1dc, #fff1dc); border-color: #fff1dc; }
+    .act button.hot { background-size: 100% 100%; color: #000; border-color: #c4b5a0; }
+    .act button.hot .sub { color: #000; }
+    .act button.hot:hover:not(:disabled) { background-image: linear-gradient(#fff1dc, #fff1dc); border-color: #fff1dc; }
+    .grp { border: 1px solid #2a231e; padding: 0.2rem 0.9rem 0.5rem; margin: 0.45rem 0 0; text-align: center; min-inline-size: auto; }
+    .grp legend { padding: 0 0.5em; font-size: 0.7rem; letter-spacing: 0.12em; color: #6b5f52; text-transform: uppercase; }
+    #grp-share[hidden] { display: none; }
+    #grp-share.drawing { border-color: transparent; }
+    #grp-share.drawing legend, #grp-share legend { visibility: hidden; }
+    #grp-share.framed { animation: framein 420ms ease-out both; }
+    @keyframes framein { from { border-color: transparent; } }
+    .act button.unlined { border-color: transparent !important; background: transparent !important; color: transparent !important; }
+    .act button.unlined .sub { color: transparent !important; }
+    .under span.later { visibility: hidden; }
+    .under { position: relative; }
+    #u3 { white-space: nowrap; }
+    #u3 .wl { position: absolute; left: 50%; top: 0; transform: translateX(-50%); white-space: nowrap; width: auto; max-width: none; flex: none; text-align: center; }
+    .act button.hollow, .share a.hollow { background: transparent !important; color: transparent !important; }
+    .act button.hollow .sub { color: transparent !important; }
+    .grp { --frame-ink: #2a231e; }
+    #grp-eth.drawing { border-color: transparent; }
+    #grp-eth legend { visibility: hidden; }
+    #grp-eth.framed { animation: framein 420ms ease-out both; }
+    .share a.unlined { border-color: transparent !important; background: transparent !important; color: transparent !important; }
+    .share { display: grid; grid-template-columns: 11rem 11rem; gap: 0.4rem 0.9rem; justify-content: center; padding-top: 0.3rem; }
+    .share a { display: block; text-align: center; font: inherit; color: #c4b5a0; background: transparent; border: 1px solid #6b5f52; text-decoration: none; letter-spacing: 0.05em; white-space: nowrap; min-width: 0; }
+    .share a.x { grid-column: 1 / -1; padding: 0.5rem 0.4rem; font-size: 0.9rem; }
+    .share a.x:hover { background: #c4b5a0; color: #000; }
+    .share a.x.hot { background: #c4b5a0; color: #000; border-color: #c4b5a0; }
+    .share a.x.hot:hover { background: #fff1dc; border-color: #fff1dc; }
+    .share a.half { padding: 0.22rem 0.3rem; font-size: 0.74rem; }
+    .share a.half:hover { background: #c4b5a0; color: #000; }
+    .share a.dim { opacity: 0.35; pointer-events: none; transition: opacity 200ms ease; }
+    .grp .act { margin-top: 0.4rem; }
+    .grp[hidden] { display: none; }
+    .act.two { display: flex; gap: 0.9rem; justify-content: center; }
+    .under { display: flex; gap: 0.9rem; justify-content: center; margin-top: 0.35rem; font-size: 0.72rem; }
+    .under span { width: 11rem; flex: 0 1 11rem; min-width: 0; text-align: center; white-space: normal; line-height: 1.4; min-height: 1.4em; }
+    .under span a { white-space: nowrap; }
+    .under .dots { display: inline-block; width: 0; height: 1.4em; line-height: 1.4; vertical-align: top; overflow: visible; white-space: nowrap; text-align: left; }
+    .under a.bad { color: #a04030; border-bottom-color: #5a2a22; }
+    .under span:empty { visibility: hidden; }
+    .act.two:has(#b4:not(.awake)) + .under #u4 { display: none; }
+    .act.two:has(#b4:not(.awake)) + .under #u3 { width: auto; flex: 0 1 auto; white-space: nowrap; }
+    .under a { color: #6b5f52; text-decoration: none; border-bottom: 1px solid #2a231e; }
+    .under a:hover { color: #c4b5a0; border-bottom-color: #6b5f52; }
+
+    #b4 { max-width: 11rem; transition: background-size 140ms cubic-bezier(0.25, 0.8, 0.3, 1), color 90ms linear 30ms, max-width 420ms ease, opacity 300ms ease 140ms, padding 420ms ease, border-width 420ms ease, margin-left 420ms ease; overflow: hidden; white-space: nowrap; }
+    #b4:not(.awake) { max-width: 0; opacity: 0; padding-left: 0; padding-right: 0; border-left-width: 0; border-right-width: 0; margin-left: -0.9rem; pointer-events: none; }
+    .act.two button { display: flex; flex-direction: column; align-items: center; padding: 0.45rem 0.4rem 0.4rem; width: 11rem; flex: 0 1 11rem; letter-spacing: 0.05em; min-width: 0; }
+    .act button .sub { font-size: 0.62rem; letter-spacing: 0; color: #9a8d7c; margin-top: 0.3rem; white-space: nowrap; }
+    .act button:hover:not(:disabled) .sub { color: #000; }
+    .act { align-items: center; }
+    h1 { position: relative; }
+    #wallet { position: fixed; right: 1.2rem; top: 0.8rem; z-index: 6; font: 0.8rem 'JetBrains Mono', monospace; letter-spacing: 0.05em; color: #c4b5a0; background: transparent; border: 1px solid #6b5f52; padding: 0.3rem 0.9rem; cursor: pointer; text-transform: none; }
+    #wallet[hidden] { display: none; }
+    @media (min-width: 641px) { #wallet { width: calc(10 * (1ch + 0.05em) + 1.8rem + 2px); box-sizing: border-box; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+    #wallet.unlined { border-color: transparent; color: transparent; }
+    #wallet:hover { background: #c4b5a0; color: #000; }
+    #wallet.on { border-color: #2a231e; }
+
+    .act .q { top: 0; height: 100%; right: auto; left: calc(100% + 0.7em); }
+    @media (min-width: 641px) {
+      .act.two button { padding: 0.16rem 0.4rem 0.14rem; font-size: 0.8rem; width: 9.5rem; flex-basis: 9.5rem; line-height: 1.25; }
+      .act.two button .sub { font-size: 0.58rem; line-height: 1.2; }
+      .act.two { margin-top: 0.4rem; }
+      .grp { padding: 0 0.8rem 0.3rem; margin-top: 0.3rem; }
+      .share { gap: 0.25rem 0.6rem; padding-top: 0.1rem; }
+      .share a.x { padding: 0.16rem 0.4rem; font-size: 0.8rem; }
+      .share a.half { padding: 0.06rem 0.3rem; font-size: 0.66rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="bg" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <main>
+    <section id="write">
+      <h1 data-boot><a href="../" class="home">Ephemeral Entropy</a><button type="button" id="wallet" hidden>Connect</button></h1>
+      <div class="wiz">
+
+        <form id="s1" autocomplete="off">
+          <p class="lead" id="lead" data-boot>Write something. It becomes a Seal.</p>
+          <div id="boxwrap"><span class="q" id="q-ash" hidden tabindex="0" data-tip="The ash, in three steps.&#10;&#10;· Words. What you wrote is the raw material. It never left this page.&#10;· Salt. Your browser added 32 random bytes from hardware noise, so the same words never make the same ash twice.&#10;· SHA-256. One-way: anything in, 32 bytes out. Change one letter and every byte changes.&#10;&#10;No way back.">(?)</span><div id="box" class="unlined"><span id="hint" aria-hidden="true"><span class="txt"></span><span class="bar"></span></span><textarea id="msg" placeholder="Your words never leave this page." spellcheck="false" aria-label="Message" rows="5"></textarea><div id="hashbox" hidden aria-live="polite"></div></div></div>
+          <div class="act" id="act1"><button type="submit" id="b1" disabled>Hash message</button></div>
+        </form>
+
+        <div id="s2" hidden>
+          <div class="act" id="act2"><button type="button" id="b2" disabled>Seal it</button></div>
+          <div class="lbl" id="lbl-seal" hidden>Seal<span class="q inlbl" tabindex="0" data-tip="The Seal is made in three steps.&#10;&#10;· Fold. 14 cells are chosen from the ash, each from five of its bytes. Every cell is placed eight times: mirrored left to right, top to bottom, and across the diagonal. That is the whole 9 × 9.&#10;&#10;· Glyphs. Each cell's number picks a symbol from a palette of 49, the one closest to the ink its ring wants. The ash also sets the Seal's character: where the weight sits, which cells stay empty, what surrounds the cross.&#10;&#10;· ✠. The centre never changes. The same mark on every Seal.&#10;&#10;The same ash always gives the same Seal.">(?)</span></div>
+          <div id="sealbox" hidden><canvas id="square"></canvas></div>
+          <div id="s3" hidden>
+            <fieldset class="grp" id="grp-eth"><legend>Ethereum</legend>
+              <div class="act two"><button type="button" id="b3" disabled><span class="big">Send blob</span><span class="sub">Free · 18 days</span></button><button type="button" id="b4" disabled><span class="big">Mint NFT</span><span class="sub">Forever · 0.00777 ETH</span></button></div>
+              <div class="under"><span id="u3"></span><span id="u4"></span></div>
+            </fieldset>
+            <fieldset class="grp" id="grp-share" hidden><legend>Share</legend><div id="share" class="share"><a class="x" href="#">Share on X</a><a href="#" class="gif half">Save GIF</a><a href="#" class="png half">Save PNG</a></div></fieldset>
+            <div id="status" aria-live="polite" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="by">made by <a href="https://x.com/Remidotgg" target="_blank" rel="noopener">@Remidotgg</a></footer>
+
+  <script src="../ee-config.js"></script>
+  <script src="../mint.js?v=9"></script>
+  <script src="../mine.js?v=1"></script>
+  <script src="../corners.js?v=12" data-base="../" data-mode="write" data-defer></script>
+  <script src="bar-variants.js?v=6"></script>
+  <script src="../fold2.js?v=2"></script>
+  <script src="../shapes2.js?v=2"></script>
+  <script src="../entropy.js?v=16"></script>
+  <script src="seal-anim.js?v=6"></script>
+  <script src="../castanim.js?v=8"></script>
+  <script src="../vendor/gifenc.js"></script>
+  <script src="../sealgif.js?v=5"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const msg = $("msg"), s1 = $("s1"), s2 = $("s2"), s3 = $("s3"), b1 = $("b1"), b2 = $("b2"), b3 = $("b3");
+    const hashbox = $("hashbox"), lead = $("lead"), square = $("square"), statusEl = $("status");
+    const say = (html) => { statusEl.hidden = false; statusEl.innerHTML = html.split("<br>").map(line => line.includes(" · ") ? line.split(" · ").map(b => '<span class="bit">' + b + '</span>').join(" · ") : line).join("<br>"); };
+    const Q = new URLSearchParams(location.search), LAB = Q.get("lab") === "1";
+    const TEMPO = parseFloat(Q.get("tempo")) || 1.2;
+    const V = (window.BAR_VARIANTS || {})[Q.get("bar") || "A"] || window.BAR_VARIANTS.A;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    const beat = (ms = 500) => reduced ? Promise.resolve() : wait(ms * TEMPO);
+    const hexOf = (u8) => [...u8].map(b => b.toString(16).padStart(2, "0"));
+    const W = 64;
+    const FLICK = "@#$%&*+-=~^!?<>", BLOCKS = "░▒▓█▀▄│─┼·";
+    const BARS = () => new Array(64).fill("█");
+    let COLS = 0;
+
+    let msgFloor = 0;
+    const grow = () => { msg.style.height = "auto"; msg.style.height = Math.max(msgFloor, 9 * parseFloat(getComputedStyle(document.documentElement).fontSize), Math.min(msg.scrollHeight, innerHeight * 0.4)) + "px"; };
+    msg.addEventListener("input", () => { b1.disabled = msg.value.trim().length === 0; grow(); });
+    msg.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (!b1.disabled) b1.click(); } });
+    const ASH_TIP = $("q-ash").dataset.tip;
+    const WRITE_TIP = "What happens when you press hash?\n\n· Your words never leave this page.\n· Your browser adds 32 random bytes to them.\n· SHA-256 turns them into a hash: 32 bytes, impossible to turn back.\n· Those 32 bytes are the ash.\n· The ash becomes your Seal. The words are gone.\n\nDon't trust this page?\nHash your message before you send it here.";
+    addEventListener("load", () => { const q = $("q-ash"), wrap = $("boxwrap"); q.dataset.tip = WRITE_TIP; q.style.top = (lead.offsetTop - wrap.offsetTop) + "px"; q.style.height = lead.offsetHeight + "px";
+      if (HASH_ASH) { q.hidden = false; return; }
+      q.style.visibility = "hidden"; q.hidden = false; setTimeout(() => { q.style.visibility = ""; bootIn(q, { speed: 60, rowStagger: 0, glyphs: SCRAMBLE }); }, reduced ? 0 : 520); });
+    addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || e.shiftKey || e.isComposing || e.target === msg) return;
+      const next = [$("b2"), $("b3"), $("b4")].find(b => b && !b.disabled && !b.closest("[hidden]") && b.dataset.mode !== "view" && b.dataset.mode !== "opensea");
+      if (next) { e.preventDefault(); next.click(); }
+    });
+    if (LAB && Q.get("bare") === "1") document.documentElement.classList.add("lab");
+    const HASH_ASH = (location.hash.slice(1).match(/^[0-9a-f]{64}$/i) || [null])[0];
+    async function bootFromHash() {
+      $("box").classList.add("done"); hex = HASH_ASH.toLowerCase(); ash = new Uint8Array(hex.match(/../g).map(h => parseInt(h, 16))); link = "#" + hex; myKey = await eeKey(hex);
+      msg.hidden = true; $("act1").hidden = true; s2.hidden = false; $("act2").hidden = true;
+      hashbox.hidden = false; hashbox.classList.remove("asWritten"); hashbox.textContent = "";
+      { const pad0 = parseFloat(getComputedStyle(hashbox).paddingLeft), fs0 = parseFloat(getComputedStyle(hashbox).fontSize), lh0 = parseFloat(getComputedStyle(hashbox).lineHeight);
+        const probe = document.createElement("span"); probe.textContent = "0".repeat(64); probe.style.whiteSpace = "pre"; probe.style.display = "inline-block"; hashbox.appendChild(probe);
+        const fs1 = Math.min(fs0, fs0 * (box.clientWidth - 2 * pad0) / probe.offsetWidth); probe.remove();
+        hashbox.style.fontSize = fs1 + "px"; hashbox.style.lineHeight = Math.round(fs1 * lh0 / fs0) + "px"; }
+      byteSpans = hexOf(ash).map((h, i) => { const sp = document.createElement("span"); sp.textContent = h; hashbox.appendChild(sp); if (V.rows === 2 && i === 15) hashbox.appendChild(document.createTextNode("\n")); return sp; });
+      lead.textContent = "Ash"; lead.classList.add("lbl-now"); lineCells = [..."Ash"];
+      const q = $("q-ash"), wrap = $("boxwrap"); q.dataset.tip = ASH_TIP; q.style.top = (lead.offsetTop - wrap.offsetTop) + "px"; q.style.height = lead.offsetHeight + "px"; q.hidden = false; bootIn(q, { speed: 150, rowStagger: 0, churn: 300, glyphs: SCRAMBLE });
+      const indexed = fetch(window.EE_RELAY + "/index.json", { cache: "no-store" }).then(r => r.json()).then(j => j.seals.find(x => x.key === myKey) || null).catch(() => null);
+      b2.disabled = false; await sealIt();
+      const e = await indexed;
+      if (!e) return;
+      wakeMint();
+      indexed.then(async () => { try { const j = await (await fetch(window.EE_RELAY + "/index.json", { cache: "no-store" })).json(); const id = await eeMintedId(hex, j.contract, j.chainId);
+        if (id) { const os = j.chainId === 1 ? "https://opensea.io/assets/ethereum/" + j.contract + "/" + id : "https://testnets.opensea.io/assets/sepolia/" + j.contract + "/" + id;
+          setHot("x"); b4.dataset.mode = "opensea"; b4.dataset.href = os; b4.querySelector(".big").textContent = "View on OpenSea"; b4.querySelector(".sub").textContent = "Seal #" + id; b4.disabled = false;
+          const tx = await eeMintTx(id, j.contract, j.chainId);
+          $("u4").innerHTML = '<a href="' + scan + (tx ? '/tx/' + tx : '/nft/' + j.contract + '/' + id) + '" target="_blank" rel="noopener">Mint TX on Etherscan</a>'; } } catch {} });
+      const scan = await explorer();
+      const show = (x) => { castBlobHash = x.blobHash; say(actions(x.blobHash, x.block, scan, x.tx)); };
+      if (e.block) { show(e); return; }
+      say('Searching for a block<span class="dots"></span>');
+      while (!e.block) { await wait(4000); try { const j = await (await fetch(window.EE_RELAY + "/index.json", { cache: "no-store" })).json(); e = j.seals.find(x => x.key === myKey) || e; } catch {} }
+      show(e);
+    }
+    if (Q.has("debug")) { const dbg = (m) => { statusEl.hidden = false; statusEl.textContent = "ERR " + m; }; addEventListener("error", (e) => dbg(e.message + " @" + (e.filename || "").split("/").pop() + ":" + e.lineno)); addEventListener("unhandledrejection", (e) => dbg(String(e.reason && e.reason.stack || e.reason))); }
+    const fit = () => {
+      const sb = $("sealbox"); if (sb.hidden || sb.dataset.sizing) return;
+      const lastBox = $("grp-share").getBoundingClientRect().bottom;
+      const over = lastBox + parseFloat(getComputedStyle(document.body).paddingBottom) + (matchMedia("(min-width: 641px)").matches ? 8 : 46) - innerHeight;
+      if (over > 0) { sb.style.transition = "none"; sb.style.height = Math.max(140, sb.offsetHeight - over) + "px"; void sb.offsetHeight; sb.style.transition = ""; }
+    };
+
+    if (HASH_ASH) addEventListener("load", () => setTimeout(bootFromHash, 50));
+    if (matchMedia("(max-width: 640px)").matches && !HASH_ASH) addEventListener("load", () => {
+      const act = $("act1"), foot = document.querySelector("footer.by");
+      const below = act.offsetHeight + parseFloat(getComputedStyle(act).marginTop) + (foot ? foot.offsetHeight : 0) + 28;
+      const room = innerHeight - msg.getBoundingClientRect().top - below;
+      const h = Math.floor(room * 0.75);
+      if (h > msg.offsetHeight) { msg.style.height = h + "px"; msgFloor = h; }
+    });
+    else if (matchMedia("(hover: hover) and (pointer: fine)").matches) addEventListener("load", () => msg.focus({ preventScroll: true }));
+    { const HINTS = ["Your words never leave this page", "Your browser adds 32 random bytes to them", "The random bytes come from your machine", "Randomness from the exact timing of your keystrokes, your cursor movement, your chips",
+                     "Your computer keeps a pool of this noise and stirs it constantly", "Your browser draws 32 bytes from that pool, fresh every time",
+                     "Not even this page can predict them", "Mixed with your words, they make the salt",
+                     "This is the salt: the same words never make the same Seal twice", "SHA-256 turns them into a hash: 32 bytes, impossible to turn back",
+                     "Those 32 bytes are the ash", "The ash becomes your Seal.\nThe words are gone",
+                     "Don't trust this page?\nHash your message before you send it here"];
+
+      const txt = document.querySelector("#hint .txt"); let h = 0;
+      const showing = () => !msg.value && !$("box").classList.contains("engaged") && !msg.hidden;
+      const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+      const typeIn = async (next) => {
+        for (let k = 1; k <= next.length; k++) {
+          txt.textContent = next.slice(0, k - 1) + (k < next.length ? (CALM ? "" : SCRAMBLE[(Math.random() * SCRAMBLE.length) | 0]) : next[k - 1]);
+          const ch = next[k - 1]; await sleep(20 + Math.random() * 16 + (ch === " " ? 14 : 0) + (/[.,:?]/.test(ch) ? 110 : 0));
+        }
+        txt.textContent = next;
+      };
+      const rotate = async () => {
+        await sleep(1150); await typeIn(HINTS[0]);
+        for (;;) {
+          await sleep(2400 + txt.textContent.length * 40);
+          if (!showing() || document.hidden) continue;
+          let cur = txt.textContent;
+          while (cur.length) { cur = cur.slice(0, -1); txt.textContent = cur; await sleep(16 + Math.random() * 10); if (!showing()) break; }
+          await sleep(240);
+          h = (h + 1) % HINTS.length; const next = HINTS[h];
+          await typeIn(next);
+        }
+      };
+      rotate(); }
+    const drawRound = (ink) => new Promise((done) => {
+      const box = $("box"), wrap = $("boxwrap");
+      if (reduced) return done();
+      const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "drawline");
+      const r = document.createElementNS(NS, "rect"); r.style.stroke = ink; r.setAttribute("x", 0.5); r.setAttribute("y", 0.5); svg.appendChild(r); wrap.appendChild(svg);
+      const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, DUR = 620, t0 = performance.now();
+      const frame = () => {
+        const bb = box.getBoundingClientRect(), wb = wrap.getBoundingClientRect(), bw = bb.width, bh = bb.height;
+        const L = 2 * (bw - 1) + 2 * (bh - 1), p = ease(Math.min(1, (performance.now() - t0) / DUR));
+        svg.style.left = (bb.left - wb.left) + "px"; svg.style.top = (bb.top - wb.top) + "px"; svg.setAttribute("width", bw); svg.setAttribute("height", bh);
+        svg.setAttribute("viewBox", "0 0 " + bw + " " + bh);
+        r.setAttribute("width", bw - 1); r.setAttribute("height", bh - 1); r.style.strokeDasharray = L; r.style.strokeDashoffset = L * (1 - p);
+        if (p < 1) requestAnimationFrame(frame); else { done(); svg.remove(); }
+      };
+      frame();
+    });
+    const drawOn = (el, ink, DUR = 520, inset = () => 0, keep = false, alpha = 1) => new Promise((done) => {
+      if (reduced) return done(null);
+      const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("class", "drawline"); svg.style.position = "fixed"; svg.style.opacity = alpha;
+      const r = document.createElementNS(NS, "rect"); r.style.stroke = ink; r.setAttribute("x", 0.5); r.setAttribute("y", 0.5); svg.appendChild(r); document.body.appendChild(svg);
+      const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, t0 = performance.now();
+      const frame = () => {
+        const r0 = el.getBoundingClientRect(), it = inset(), b = { left: r0.left, top: r0.top + it, width: r0.width, height: r0.height - it };
+        const L = 2 * (b.width - 1) + 2 * (b.height - 1), p = ease(Math.min(1, (performance.now() - t0) / DUR));
+        svg.style.left = b.left + "px"; svg.style.top = b.top + "px"; svg.setAttribute("width", b.width); svg.setAttribute("height", b.height); svg.setAttribute("viewBox", "0 0 " + b.width + " " + b.height);
+        r.setAttribute("width", b.width - 1); r.setAttribute("height", b.height - 1); r.style.strokeDasharray = L; r.style.strokeDashoffset = L * (1 - p);
+        if (p < 1) requestAnimationFrame(frame); else if (keep) done(svg); else { done(null); svg.remove(); }
+      };
+      frame();
+    });
+    const inkOf = (el) => { const had = el.classList.contains("unlined"); el.classList.remove("unlined", "hollow"); const c = getComputedStyle(el).borderTopColor; if (had) el.classList.add("unlined"); return c; };
+    const legendInset = (fs) => () => { const lg = fs.querySelector("legend"); return lg ? lg.getBoundingClientRect().height / 2 : 0; };
+    const buildAll = async (eth, share, ethBtns, shareBtns) => {
+      const frameInk = "#2a231e", buttonInk = "#6b5f52";
+      const [svgE, svgS] = await Promise.all([drawOn(eth, frameInk, 520, legendInset(eth), true), drawOn(share, frameInk, 520, legendInset(share), true)]);
+      const all = [...ethBtns, ...shareBtns];
+      const alphaOf = (b) => (b.disabled || b.classList.contains("dim")) ? 0.35 : 1;
+      await Promise.all(all.map(b => drawOn(b, buttonInk, 420, () => 0, true, alphaOf(b)).then(svg => { b.__svg = svg; })));
+      all.forEach(b => { b.style.transition = "none"; b.classList.remove("unlined"); b.classList.add("hollow"); if (b.__svg) b.__svg.remove(); void b.offsetWidth; b.style.transition = ""; });
+      const gap = () => wait(reduced ? 0 : 120);
+      const word = (el) => bootIn(el, { speed: 30, rowStagger: 0, glyphs: SCRAMBLE });
+      const legend = (fs, svg) => { fs.classList.remove("drawing"); if (svg) svg.remove(); const lg = fs.querySelector("legend"); lg.style.visibility = "visible"; word(lg); };
+      const fill = (b) => { b.classList.remove("hollow"); const parts = b.querySelectorAll(".big, .sub"); (parts.length ? [...parts] : [b]).forEach(word);
+        const u = b === b3 ? $("u3") : b === b4 ? $("u4") : null; if (u && u.classList.contains("later")) { u.classList.remove("later"); if (u.textContent.trim()) word(u); } };
+      legend(eth, svgE); await gap();
+      for (const b of ethBtns) { fill(b); await gap(); }
+      legend(share, svgS); await gap();
+      for (const b of shareBtns) { fill(b); await gap(); }
+    };
+    const buildBox = async (frame, buttons, { drawFrame = true } = {}) => {
+      if (drawFrame) { frame.classList.add("drawing"); }
+      buttons.forEach(b => b.classList.add("unlined"));
+      if (drawFrame) { const ink = getComputedStyle(frame).getPropertyValue("--frame-ink") || "#2a231e"; await drawOn(frame, ink.trim() || "#2a231e", 560, legendInset(frame)); frame.classList.remove("drawing"); }
+      for (const b of buttons) { const ink = inkOf(b); await drawOn(b, ink, 420); b.classList.remove("unlined"); b.classList.add("hollow"); }
+      for (const b of buttons) { b.classList.remove("hollow"); for (const t of (b.querySelectorAll(".big, .sub").length ? b.querySelectorAll(".big, .sub") : [b])) bootIn(t, { speed: 30, rowStagger: 0, glyphs: SCRAMBLE });
+        const u = b === b3 ? $("u3") : b === b4 ? $("u4") : null; if (u && u.classList.contains("later")) { u.classList.remove("later"); if (u.textContent.trim()) bootIn(u, { speed: 30, rowStagger: 0, glyphs: SCRAMBLE }); }
+        await wait(reduced ? 0 : 110); }
+      if (drawFrame) { const lg = frame.querySelector("legend"); if (lg) { lg.style.visibility = "visible"; bootIn(lg, { speed: 40, rowStagger: 0, glyphs: SCRAMBLE }); } }
+    };
+    setTimeout(async () => {
+      const box = $("box");
+      box.classList.remove("unlined"); const ink = getComputedStyle(box).borderTopColor; box.classList.add("unlined");
+      await drawRound(ink); box.classList.remove("unlined");
+    }, 1040);
+    $("box").addEventListener("mousedown", () => $("box").classList.add("engaged"));
+    msg.addEventListener("blur", () => { if (!msg.value) $("box").classList.remove("engaged"); });
+    addEventListener("pageshow", (e) => { if (e.persisted) location.reload(); });
+    if (LAB) addEventListener("load", () => { msg.value = Q.get("text") || "write here"; msg.dispatchEvent(new Event("input")); setTimeout(() => b1.click(), 400); });
+
+    const box = $("box");
+    function measureCols() {
+      const cs = getComputedStyle(msg), pad = parseFloat(cs.paddingLeft);
+      const cx = document.createElement("canvas").getContext("2d");
+      cx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      return COLS = Math.max(1, Math.floor((msg.clientWidth - 2 * pad) / cx.measureText("█").width));
+    }
+    function visualLines(text) {
+      const cs = getComputedStyle(msg), m = document.createElement("div");
+      Object.assign(m.style, { position: "absolute", left: "0", top: "0", visibility: "hidden", whiteSpace: "pre-wrap", overflowWrap: "break-word", boxSizing: "border-box",
+        width: msg.clientWidth + "px", padding: cs.padding, fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, lineHeight: cs.lineHeight, letterSpacing: cs.letterSpacing });
+      document.body.appendChild(m);
+      const lines = [], range = document.createRange();
+      for (const p of text.split("\n")) {
+        if (!p) { lines.push(""); continue; }
+        m.textContent = p; const node = m.firstChild; let start = 0, lastTop = null;
+        for (let i = 0; i < p.length; i++) {
+          range.setStart(node, i); range.setEnd(node, i + 1);
+          const r = range.getClientRects()[0]; if (!r) continue;
+          if (lastTop !== null && r.top - lastTop > 1 && !/\s/.test(p[i])) { lines.push(p.slice(start, i)); start = i; }
+          lastTop = r.top;
+        }
+        lines.push(p.slice(start));
+      }
+      m.remove();
+      return lines.map(l => { const c = [...l].slice(0, COLS); while (c.length < COLS) c.push(" "); return c.join(""); });
+    }
+    function buildStack(lines) {
+      hashbox.textContent = ""; hashbox.classList.add("asWritten");
+      const stack = document.createElement("div"); stack.className = "stack"; hashbox.appendChild(stack);
+      const lh = getComputedStyle(msg).lineHeight;
+      for (const l of lines) { const d = document.createElement("div"); d.className = "bar"; d.style.lineHeight = lh; d.textContent = l; stack.appendChild(d); }
+      return stack;
+    }
+    function seeded(c, hexStr, share) {
+      const out = c.slice(), idx = [...Array(c.length).keys()].filter(i => !/\s/.test(c[i])).sort(() => Math.random() - 0.5);
+      let h = 0; for (let j = 0; j < Math.round(idx.length * share); j++) out[idx[j]] = hexStr[h++ % hexStr.length];
+      return out;
+    }
+    let lineCells = [...lead.textContent];
+    const light = async (label, what) => { lineCells = await morph(lineCells, [...(label + " — " + what)], { el: lead, w: 64, speed: 10, churn: 200 }); };
+    function show(c, el = hashbox, w = W) { const t = c.join(""); if (el === msg) { msg.value = t; msg.scrollTop = 0; return; } let out = ""; for (let i = 0; i < t.length; i += w) out += (i ? "\n" : "") + t.slice(i, i + w); el.textContent = out; }
+    async function morph(from, to, { speed = 14, churn = 240, glyphs = FLICK, el = hashbox, w = W, render } = {}) {
+      if (CALM && el === lead) churn = 0;
+      const paint = render || ((c) => show(c, el, w));
+      if (reduced) { paint(to); return to.slice(); }
+      speed *= TEMPO; churn *= TEMPO;
+      const rowStagger = w * speed + 40;
+      const n = Math.max(from.length, to.length), meta = [];
+      for (let i = 0; i < n; i++) {
+        const a = from[i] ?? "", b = to[i] ?? "", row = Math.floor(i / w), col = i % w;
+        meta.push({ a, b, lock: (a === b && /\s/.test(a)) ? 0 : 120 + row * rowStagger + col * speed + Math.random() * 40 });
+      }
+      const t0 = performance.now(), cur = new Array(n);
+      await new Promise(res => {
+        function tick() {
+          const t = performance.now() - t0; let done = true;
+          for (let i = 0; i < n; i++) {
+            const m = meta[i];
+            if (m.lock === 0 || t >= m.lock) cur[i] = m.b;
+            else if (t >= m.lock - churn) { cur[i] = glyphs[(Math.random() * glyphs.length) | 0]; done = false; }
+            else { cur[i] = m.a; done = false; }
+          }
+          paint(cur); if (done) res(); else requestAnimationFrame(tick);
+        }
+        tick();
+      });
+      return to.slice();
+    }
+
+    let ash = null, hex = "", link = "", byteSpans = [], myKey = "";
+    let sealGlyphs = null, castDone = false, sealLightFn = null, stopLight = null;
+
+    s1.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = msg.value; if (!text.trim()) return;
+      b1.disabled = true; msg.disabled = true; msg.scrollTop = 0;
+      drawRound("#2a231e").then(() => $("box").classList.add("done"));
+      $("act1").hidden = true;
+      measureCols();
+      const pad = parseFloat(getComputedStyle(hashbox).paddingLeft), fs0 = parseFloat(getComputedStyle(hashbox).fontSize);
+      const rowH0 = parseFloat(getComputedStyle(msg).lineHeight), seen = Math.max(1, Math.floor((msg.clientHeight - 2 * pad) / rowH0));
+      const lines = visualLines(text).slice(0, seen);
+      const stack = buildStack(lines); msg.hidden = true; hashbox.hidden = false;
+      const inner = box.clientWidth - 2 * pad;
+      const probe = document.createElement("span"); probe.textContent = "0".repeat(W); probe.style.whiteSpace = "pre"; probe.style.display = "inline-block"; hashbox.appendChild(probe);
+      const fs1 = fs0 * inner / probe.offsetWidth; probe.remove();
+      const rowH1 = Math.round(fs1 * parseFloat(getComputedStyle(hashbox).lineHeight) / fs0), SX = W / COLS;
+      stack.style.setProperty("--settle", "0ms");
+      const ctx = { stack, box, wrap: $("boxwrap"), hashbox, fs0, fs1, rowH0, rowH1, SX, COLS, W, pad, wait, beat, reduced, TEMPO, morph, show, BARS, BLOCKS, FLICK };
+      const t0 = performance.now();
+      const render = (cur) => stack.childNodes.forEach((row, i) => {
+        const chunk = cur.slice(i * COLS, (i + 1) * COLS).join(""); row.textContent = chunk;
+        if (!row.dataset.set && !/[^█]/.test(chunk)) { row.dataset.set = 1; V.settle(row, ctx); }
+      });
+      let cells = lines.flatMap(l => [...l]);
+      s2.hidden = false;
+      await light("Words", "your message");
+      cells = await morph(cells, cells.map(() => "█"), { w: COLS, render, glyphs: "█", speed: 4, churn: 0 });
+      await wait(reduced ? 0 : 240 * TEMPO);
+      await beat(150);
+      cells = await V.collapse(ctx);
+      await beat(300);
+      const salt = crypto.getRandomValues(new Uint8Array(32));
+      await light("Salt", "browser randomness");  cells = await V.phase("salt", cells, ctx); await beat(250);
+      const body = new TextEncoder().encode(text);
+      const input = new Uint8Array(32 + body.length); input.set(salt); input.set(body, 32);
+      ash = new Uint8Array(await crypto.subtle.digest("SHA-256", input));
+      hex = hexOf(ash).join(""); link = "#" + hex; myKey = await eeKey(hex);
+      history.replaceState(null, "", "#" + hex);
+      msg.value = "";
+      await light("SHA-256", "one-way hash");     cells = await V.phase("sha", cells, ctx); await beat(250);
+      lineCells = await morph(lineCells, [..."Ash"], { el: lead, w: 64, speed: 10, churn: 200 }); lead.classList.add("lbl-now");
+      cells = await V.reveal(cells, [...hex], ctx);
+      hashbox.textContent = "";
+      byteSpans = hexOf(ash).map((h, i) => { const sp = document.createElement("span"); sp.textContent = h; hashbox.appendChild(sp); if (V.rows === 2 && i === 15) hashbox.appendChild(document.createTextNode("\n")); return sp; });
+      b2.disabled = false;
+      if (LAB) parent.postMessage({ ee: "done", bar: Q.get("bar") || "A", ms: Math.round(performance.now() - t0) }, "*");
+      const q = $("q-ash"), wrap = $("boxwrap"); q.dataset.tip = ASH_TIP;
+      q.style.top = (lead.offsetTop - wrap.offsetTop) + "px"; q.style.height = lead.offsetHeight + "px";
+      q.hidden = false; bootIn(q, { speed: 150, rowStagger: 0, churn: 300, glyphs: SCRAMBLE });
+    });
+
+    const sealIt = async () => {
+      b2.disabled = true; $("act2").hidden = true;
+      const sealbox = $("sealbox");
+      const dpr = window.devicePixelRatio || 1, font = parseFloat(getComputedStyle(hashbox).fontSize);
+      $("lbl-seal").hidden = false; bootIn($("lbl-seal"), { speed: 110, rowStagger: 0, churn: 260, glyphs: SCRAMBLE }); sealbox.hidden = false;
+      const w1 = sealbox.clientWidth;
+      square.width = Math.round((w1 - 2) * dpr);
+      const s3el = $("s3"), shareEl = $("grp-share");
+      const was3 = s3el.hidden, wasS = shareEl.hidden;
+      const natural = Math.round(sizeSeal(square, { font, pad: 0, ash: false }) / dpr);
+      const wasSt = statusEl.hidden, stHtml = statusEl.innerHTML;
+      s3el.style.visibility = "hidden"; s3el.hidden = false; shareEl.hidden = false; statusEl.hidden = true;
+      sealbox.style.transition = "none"; sealbox.style.height = natural + "px";
+      const lastBox = $("grp-share").getBoundingClientRect().bottom;
+      const over = lastBox + parseFloat(getComputedStyle(document.body).paddingBottom) + (matchMedia("(min-width: 641px)").matches ? 8 : 46) - innerHeight;
+      s3el.hidden = was3; shareEl.hidden = wasS; statusEl.hidden = wasSt; statusEl.innerHTML = stHtml; s3el.style.visibility = "";
+      const h1 = Math.max(140, natural - Math.max(0, over));
+      if (matchMedia("(min-width: 641px)").matches && h1 < w1) {
+        let css = Math.floor(h1 - 2); if ((sealbox.clientWidth - css) % 2) css -= 1; window.EE_CELL_DIV = 11.6;
+        square.width = Math.round(css * dpr); sizeSeal(square, { font, pad: 0, ash: false });
+        square.style.width = square.style.height = css + "px";
+      }
+      sealbox.dataset.sizing = "1"; sealbox.style.height = "0px"; void sealbox.offsetWidth;
+      if (matchMedia("(max-width: 640px)").matches) { sealbox.style.width = Math.min(sealbox.parentElement.clientWidth, h1) + "px"; sealbox.style.marginLeft = sealbox.style.marginRight = "auto"; }
+      sealbox.style.transition = ""; void sealbox.offsetWidth; sealbox.style.height = h1 + "px";
+      await wait(reduced ? 0 : 400);
+      delete sealbox.dataset.sizing; $("s2").dispatchEvent(new Event("sealed"));
+      const onLit = (lit) => { hashbox.classList.toggle("lit", lit !== null); byteSpans.forEach((sp, i) => sp.classList.toggle("on", lit !== null && lit.has(i))); };
+      const { paint, glyphs, light } = await playSeal(square, ash, { tempo: HASH_ASH ? 0.02 : TEMPO * 0.6, font, pad: 0, ash: false, onLit });
+      sealGlyphs = glyphs; sealLightFn = light; stopLight = light();
+      b4.style.transition = "none"; b4.classList.add("awake"); void b4.offsetWidth; b4.style.transition = "";
+      b3.disabled = true; b4.disabled = true; delete b4.dataset.mode;
+      const shareBox = $("grp-share"), shareLinks = [...shareBox.querySelectorAll(".share a")];
+      shareLinks.forEach(a => a.classList.add("unlined", "dim")); shareBox.classList.add("drawing"); shareBox.hidden = false;
+      $("grp-eth").classList.add("drawing"); b3.classList.add("unlined"); b4.classList.add("unlined"); $("u3").classList.add("later"); $("u4").classList.add("later");
+      s3.hidden = false; shareShown = true;
+      walletBtn.classList.add("unlined"); walletBtn.hidden = false; levelWallet();
+      drawOn(walletBtn, "#6b5f52", 420).then(() => { walletBtn.classList.remove("unlined"); bootIn(walletBtn, { speed: 60, rowStagger: 0, glyphs: SCRAMBLE }); });
+      await buildAll($("grp-eth"), shareBox, [b3, b4], shareLinks);
+      b3.disabled = false; requestAnimationFrame(() => setHot("b3"));
+      const G = sealGeom(square, { font, pad: 0, ash: false });
+      let last = "";
+      square.addEventListener("mousemove", (e) => {
+        if (castDone) return;
+        const b = square.getBoundingClientRect(), x = (e.clientX - b.left) * (square.width / b.width), y = (e.clientY - b.top) * (square.height / b.height);
+        const c = Math.round((x - G.X) / G.S) + 4, r = Math.round((y - G.Y) / G.S) + 4;
+        const key = (r < 0 || r > 8 || c < 0 || c > 8 || (r === 4 && c === 4)) ? "" : r + "," + c;
+        if (key === last) return; last = key;
+        if (!key) { onLit(null); paint([]); return; }
+        onLit(bytesOf(r, c)); paint(mirrorsOf(r, c));
+      });
+      square.addEventListener("mouseleave", () => { if (castDone) return; last = ""; onLit(null); paint([]); });
+    };
+    b2.addEventListener("click", sealIt);
+
+    const walletBtn = $("wallet"); let account = null;
+    const levelWallet = () => { const h = document.querySelector("h1").getBoundingClientRect(); walletBtn.style.top = Math.max(8, h.top + (h.height - walletBtn.offsetHeight) / 2) + "px"; };
+    addEventListener("resize", levelWallet); addEventListener("load", levelWallet);
+    const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+    const ENS_UR = "0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe", ENS_RPC = "https://ethereum-rpc.publicnode.com";
+    async function ensName(addr) {
+      try {
+        const a = addr.toLowerCase().replace(/^0x/, "");
+        const data = "0x5d78a217" + "40".padStart(64, "0") + "3c".padStart(64, "0") + "14".padStart(64, "0") + a.padEnd(64, "0");
+        const r = await fetch(ENS_RPC, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to: ENS_UR, data }, "latest"] }) });
+        const hex = ((await r.json()).result || "").slice(2); if (!hex) return null;
+        const off = parseInt(hex.slice(0, 64), 16) * 2, len = parseInt(hex.slice(off, off + 64), 16) * 2;
+        return new TextDecoder().decode(Uint8Array.from(hex.slice(off + 64, off + 64 + len).match(/../g).map(h => parseInt(h, 16)))) || null;
+      } catch { return null; }
+    }
+    let label = "Connect";
+    const setAccount = async (a) => {
+      account = a || null; walletBtn.classList.toggle("on", !!account);
+      if (!account) { label = "Connect"; walletBtn.textContent = label; return; }
+      const n = await Promise.race([ensName(account), new Promise(r => setTimeout(() => r(null), 1500))]);
+      if (account !== a) return;
+      label = n || short(account); if (!walletBtn.matches(":hover")) walletBtn.textContent = label; levelWallet();
+    };
+    const CHAINS = { 1: { chainName: "Ethereum", rpcUrls: ["https://ethereum-rpc.publicnode.com"], nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://etherscan.io"] },
+                     11155111: { chainName: "Sepolia", rpcUrls: ["https://ethereum-sepolia-rpc.publicnode.com"], nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://sepolia.etherscan.io"] } };
+    async function connect() {
+      if (!window.ethereum) { walletBtn.textContent = "No browser wallet"; setTimeout(() => setAccount(null), 2200); say("No wallet in this browser."); return null; }
+      try {
+        if (!account) { const [a] = await window.ethereum.request({ method: "eth_requestAccounts" }); setAccount(a); }
+        let chainId = 1; try { chainId = (await (await fetch(window.EE_RELAY + "/index.json", { cache: "no-store" })).json()).chainId || 1; } catch {}
+        const want = "0x" + chainId.toString(16), have = await window.ethereum.request({ method: "eth_chainId" });
+        if (have !== want) {
+          try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: want }] }); }
+          catch (e) { if (e && e.code === 4902 && CHAINS[chainId]) await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: want, ...CHAINS[chainId] }] }); else throw e; }
+        }
+      } catch (e) { if (!(e && e.code === 4001)) say("The wallet said no: " + String((e && e.message) || e).slice(0, 100)); }
+      return account;
+    }
+    async function disconnect() {
+      try { await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] }); } catch {}
+      setAccount(null); walletBtn.classList.remove("on"); walletBtn.title = "";
+    }
+    walletBtn.addEventListener("click", () => account ? disconnect() : connect());
+    walletBtn.addEventListener("mouseenter", () => { if (account) walletBtn.textContent = "Disconnect"; });
+    walletBtn.addEventListener("mouseleave", () => { walletBtn.textContent = label; });
+    if (window.ethereum) {
+      window.ethereum.request({ method: "eth_accounts" }).then((a) => { if (a && a[0]) setAccount(a[0]); }).catch(() => {});
+      window.ethereum.on?.("accountsChanged", (a) => setAccount(a[0]));
+    }
+
+    async function explorer() {
+      try { const j = await (await fetch(window.EE_RELAY + "/index.json", { cache: "no-store" })).json(); if (j.chainId === 11155111) return "https://sepolia.etherscan.io"; } catch {}
+      return "https://etherscan.io";
+    }
+    const shareX = (blobHash) => { const u = "https://remi.gg/ee/seal/" + location.search + "#" + blobHash;
+      return "https://x.com/intent/post?text=" + encodeURIComponent("I cast a Seal into Ethereum blobspace with @Remidotgg's Ephemeral Entropy\n\n" + u); };
+    const until = (expiry) => expiry ? ' · lives until ' + new Date(expiry * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : '';
+    let castBlobHash = null;
+    const viewBlob = (blobHash) => { b3.classList.remove("hot"); b3.querySelector(".big").textContent = "View blob"; b3.querySelector(".sub").textContent = "Sent · 18 days"; b3.classList.remove("pending"); b3.dataset.mode = "view"; b3.dataset.href = "../seal/" + location.search + "#" + blobHash; b3.disabled = false;
+      try { localStorage.setItem("ee.ash." + blobHash, hex); } catch {} };
+    let cornersIn = false;
+    const actions = (blobHash, block, scan, tx) => { viewBlob(blobHash); if (window.EEMine) EEMine.add({ blobHash, ash: hex, block, tx });
+      if (!cornersIn && window.eeCornersShow) { cornersIn = true; window.eeCornersShow(drawOn, (p) => bootIn(p, { speed: 60, rowStagger: 0, glyphs: SCRAMBLE })); }
+      if (scan) $("u3").innerHTML = '<a href="' + scan + (tx ? '/tx/' + tx + '#blobs' : '/blob/' + blobHash) + '" target="_blank" rel="noopener">Blob on Etherscan</a>';
+      { const x = document.querySelector("#share a.x"); x.href = shareX(blobHash); x.target = "_blank"; x.rel = "noopener"; x.classList.toggle("hot", hotOn === "x"); }
+      shareFilled = true; document.querySelectorAll("#share a").forEach(a => a.classList.remove("dim")); return ""; };
+    document.addEventListener("click", async (e) => {
+      const a = e.target.closest("a.gif, a.png"); if (!a) return; e.preventDefault();
+      if (a.dataset.busy) return; a.dataset.busy = "1"; const was = a.textContent, bytes = Uint8Array.from(hex.match(/../g).map(x => parseInt(x, 16)));
+      try {
+        if (a.classList.contains("gif")) await saveSealGIF(bytes, { onProgress: (p) => { a.textContent = "rendering " + Math.round(p * 100) + "%"; } });
+        else await saveSealPNG(bytes);
+        a.textContent = "saved";
+      } catch (err) { a.textContent = "failed"; console.error(err); }
+      setTimeout(() => { a.textContent = was; delete a.dataset.busy; }, 2500);
+    });
+    const reason = (e) => { const m = String((e && e.message) || e || ""); return /gas|balance|fund|insufficient/i.test(m) ? "relayer out of gas" : /^relay [45]/.test(m) ? "relayer error" : "relayer not responding"; };
+    const b4 = $("b4");
+    const mintNow = async () => {
+      const cap = (m) => m.charAt(0).toUpperCase() + m.slice(1);
+      const u4 = $("u4");
+      const line = (m, href) => { u4.innerHTML = href ? '<a href="' + href + '" target="_blank" rel="noopener">' + cap(m) + '</a>' : cap(m); };
+      b4.disabled = true; b4.querySelector(".big").textContent = "Pending"; b4.classList.add("pending");
+      let resolveMint, rejectMint; const minted = new Promise((res, rej) => { resolveMint = res; rejectMint = rej }); minted.catch(() => {});
+      if (stopLight) { stopLight(); stopLight = null; } castDone = true;
+      const lamp = playCast(square, { glyphs: sealGlyphs, tempo: TEMPO * 0.5, font: parseFloat(getComputedStyle(hashbox).fontSize), pad: 0, events: { block: minted }, pending: softLamp, reveal: boomBoom });
+      const lampDone = async () => { await lamp.catch(() => {}); castDone = false; if (sealLightFn && !stopLight) stopLight = sealLightFn(); };
+      const tx = await eeMint(hex, line);
+      if (!tx) { rejectMint(new Error("no mint")); await lampDone(); b4.classList.remove("pending"); b4.querySelector(".big").textContent = "Mint NFT"; b4.disabled = false; return; }
+      const scan = await explorer(); let rc = null;
+      while (!rc) { await wait(4000); try { rc = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [tx] }); } catch {} }
+      if (rc.status === "0x1") resolveMint({ block: parseInt(rc.blockNumber, 16) }); else rejectMint(new Error("reverted"));
+      await lampDone();
+      b4.classList.remove("pending");
+      if (rc.status === "0x1") {
+        b4.querySelector(".big").textContent = "Minted";
+        const TRANSFER = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+        const lg = (rc.logs || []).find(l => l.topics && l.topics[0] === TRANSFER && l.topics.length === 4);
+        const id = lg ? parseInt(lg.topics[3], 16) : null, toAddr = rc.to;
+        const osUrl = id === null ? null : scan === "https://etherscan.io" ? "https://opensea.io/assets/ethereum/" + toAddr + "/" + id : "https://testnets.opensea.io/assets/sepolia/" + toAddr + "/" + id;
+        setHot("x"); b4.dataset.mode = "opensea"; b4.dataset.href = osUrl || (scan + "/tx/" + tx); b4.querySelector(".big").textContent = osUrl ? "View on OpenSea" : "Minted";
+        b4.querySelector(".sub").textContent = id !== null ? "Seal #" + id : "Minted"; b4.disabled = false;
+        $("u4").innerHTML = '<a href="' + scan + '/tx/' + tx + '" target="_blank" rel="noopener">Mint TX on Etherscan</a>';
+      }
+      else { b4.querySelector(".big").textContent = "Mint NFT"; b4.disabled = false; u4.innerHTML = '<a class="bad" href="' + scan + '/tx/' + tx + '" target="_blank" rel="noopener">Mint failed</a>'; }
+    };
+    let hotOn = "b3";
+    const setHot = (which) => { hotOn = which; b3.classList.toggle("hot", which === "b3"); b4.classList.toggle("hot", which === "b4"); const x = document.querySelector("#share a.x"); if (x) x.classList.toggle("hot", which === "x"); };
+    const wakeMint = () => { b4.classList.add("awake"); b4.dataset.mode = "mint"; b4.disabled = false; if (hotOn === "b3") setHot("b4"); mintAwakeAt = performance.now(); revealShare();
+      keepCount().then(n => { if (n === null || n < KEEP.max || b4.dataset.mode !== "mint") return;
+        b4.dataset.mode = "sold"; b4.disabled = true; b4.classList.add("sold"); b4.querySelector(".big").textContent = "Sold out"; b4.querySelector(".sub").textContent = ""; if (hotOn === "b4") setHot("x"); }); };
+    let shareFilled = false, mintAwakeAt = 0, shareShown = false;
+    const revealShare = () => {
+      if (shareShown || !shareFilled || !mintAwakeAt) return; shareShown = true;
+      setTimeout(async () => {
+        const box = $("grp-share"), links = [...box.querySelectorAll(".share a")];
+        box.classList.add("drawing"); links.forEach(a => a.classList.add("unlined")); box.hidden = false;
+        await buildBox(box, links);
+      }, Math.max(0, 520 - (performance.now() - mintAwakeAt)));
+    };
+    b4.addEventListener("click", async () => { if (b4.dataset.mode === "mint") await mintNow(); else if (b4.dataset.mode === "opensea") window.open(b4.dataset.href, "_blank", "noopener"); });
+    b3.addEventListener("click", async () => {
+      if (b3.dataset.mode === "view") { window.open(b3.dataset.href, "_blank", "noopener"); return; }
+      if (b3.dataset.mode === "mint") { await connect(); return; }
+      b3.style.width = b3.getBoundingClientRect().width + "px";
+      if (stopLight) { stopLight(); stopLight = null; }
+      b3.disabled = true; castDone = true; b3.querySelector(".big").textContent = "Pending"; b3.classList.add("pending");
+      const demo = !window.EE_RELAY;
+      const block = Q.get("demo") === "gas" ? wait(2500).then(() => Promise.reject(new Error("relay 500 balance below worst case cost (0.012 ETH). Fund the key."))) : demo
+        ? new Promise(res => setTimeout(() => res({ block: 26042367 + ((Math.random() * 50) | 0), blobHash: "0x01" + hex.slice(2) }), 12000))
+        : fetch(window.EE_RELAY + "/cast", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ash: hex }) })
+            .then(async r => { if (r.ok) return r.json(); let m = "relay " + r.status; try { const j = await r.json(); if (j.error) m += " " + j.error; } catch {} throw new Error(m); })
+            .then(res => ({ block: res.block, blobHash: res.blobHash, expiry: res.expiry, tx: res.tx }));
+      const sent = block.then((res) => res);
+      let castExpiry = null;
+      const landed = sent.then(async (res) => {
+        while (!res.block) {
+          await wait(4000);
+          try { const j = await (await fetch(window.EE_RELAY + "/index.json", { cache: "no-store" })).json(); const e = j.seals.find(s => s.key === myKey); if (e && e.block) res = { block: e.block, blobHash: e.blobHash, expiry: e.expiry, tx: e.tx || res.tx }; } catch {}
+        }
+        castExpiry = res.expiry || null;
+        return res;
+      });
+      const font = parseFloat(getComputedStyle(hashbox).fontSize);
+      const scan = await explorer();
+      const blockLink = (n) => n.toLocaleString("en");
+      let dotsTimer = null, slowTimer = null;
+      const onStage = (s) => {
+        clearInterval(dotsTimer); clearTimeout(slowTimer);
+        if (s.state === "pending") {
+          $("u3").innerHTML = '<span class="wl">Searching for blob<span class="dots"></span></span>'; const ul = $("u3").firstChild;
+          const d = ul.querySelector(".dots"); let n = 0;
+          dotsTimer = setInterval(() => { n = (n + 1) % 4; d.textContent = ".".repeat(n); }, 420);
+          const pool = ["Bribing a validator with 0 ETH", "Steady lads, deploying more capital", "You will own a Seal and be happy"];
+          const jokes = ["Stealing blobspace from an L2", ...pool.sort(() => Math.random() - 0.5)]; let j = 0;
+          const nextJoke = async () => { clearInterval(dotsTimer); ul.textContent = jokes[j]; await bootIn(ul, { speed: 40, glyphs: SCRAMBLE });
+            const dd = document.createElement("span"); dd.className = "dots"; ul.appendChild(dd); let k = 0; dotsTimer = setInterval(() => { k = (k + 1) % 4; dd.textContent = ".".repeat(k); }, 420);
+            if (++j < jokes.length) slowTimer = setTimeout(nextJoke, 12000); };
+          slowTimer = setTimeout(nextJoke, 8000);
+        }
+        else if (s.state === "complete") $("u3").textContent = 'In block ' + blockLink(s.block);
+        else if (s.state === "rest") { castBlobHash = s.blobHash || castBlobHash; say(s.blobHash ? actions(s.blobHash, s.block, scan, s.tx) : ''); }
+        else if (s.state === "failed") { $("u3").textContent = "";
+          const why = reason(s.error), raw = String((s.error && s.error.message) || s.error || "").replace(/"/g, "'").slice(0, 300);
+          say(""); $("u3").innerHTML = '<span class="wl" style="white-space:nowrap;color:#9a8d7c" title="' + raw + '">Blob ' + why + '</span>';
+          if (why === "relayer out of gas") fetch(window.EE_RELAY + "/index.json", { cache: "no-store" }).then(r => r.json()).then(j => { if (!j.gas) return;
+            const a = document.createElement("a"); a.href = "#"; a.className = "bit"; a.textContent = "fuel it: " + j.gas.slice(0, 6) + "…" + j.gas.slice(-4);
+            a.title = j.gas; a.onclick = (ev) => { ev.preventDefault(); navigator.clipboard.writeText(j.gas).then(() => { a.textContent = "address copied"; setTimeout(() => { a.textContent = "fuel it: " + j.gas.slice(0, 6) + "…" + j.gas.slice(-4); }, 1800); }); };
+            statusEl.append(" · ", a); }).catch(() => {});
+        }
+      };
+      const cast = await playCast(square, { glyphs: sealGlyphs, tempo: TEMPO * 0.5, font, pad: 0, events: { block: landed }, onStage, pending: softLamp, reveal: boomBoom });
+      if (sealLightFn && !stopLight) stopLight = sealLightFn();
+      castDone = false;
+      if (!cast.ok) {
+        castDone = false; b4.querySelector(".big").textContent = "Mint NFT"; b4.classList.remove("pending"); b4.disabled = true; delete b4.dataset.mode;
+        b3.querySelector(".big").textContent = "Send blob"; b3.classList.remove("pending"); b3.disabled = false; return;
+      }
+      if (castBlobHash) viewBlob(castBlobHash); else { b3.querySelector(".big").textContent = "Sent blob"; b3.classList.remove("pending"); b3.disabled = true; }
+      wakeMint();
+    });
+  </script>
+  <script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]nudge/.test(location.search)) { const s = document.createElement("script"); s.src = "/ee/nudge.js"; document.body.appendChild(s); }</script>
+</body>
+</html>
