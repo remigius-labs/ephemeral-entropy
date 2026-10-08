@@ -14,14 +14,21 @@ Write a message and it is folded into a Seal, cast into Ethereum blob space for 
   YOUR BROWSER                         RELAYER                          ETHEREUM L1
   ────────────                         ───────                          ───────────
 
-  "hello world"           SALT: 32 random bytes, fresh on every press
-       │                  ─────────────────────────────────────────────
-       │                  your OS keeps a pool of noise: keystroke
-       │                  timing, cursor movement, hardware jitter.
-       │                  crypto.getRandomValues draws 32 bytes from it.
-       │                  nobody can predict them, not even this page.
-       │                           │
-       └──────────┬────────────────┘
+  "hello world"
+       │   ┌ SALT, in your browser ┐
+       │   │                       │
+       │   │ 32 random bytes, new  │
+       │   │ on every press        │
+       │   │                       │
+       │   │ drawn from your OS    │
+       │   │ noise pool: keystroke │
+       │   │ timing, cursor moves, │
+       │   │ hardware jitter       │
+       │   │                       │
+       │   │ unpredictable, even   │
+       │   │ to the page itself    │
+       │   └───────────┬───────────┘
+       └──────────┬────┘
                   ▼
        SHA-256( salt ‖ message )
                   │
@@ -47,8 +54,8 @@ Write a message and it is folded into a Seal, cast into Ethereum blob space for 
                                        Seal × N fills one blob ──────────► ┌──────────────────┐
                                        (relayer pays the gas)              │ BLOB  128 KB     │
                                                                            │ the Seal, again  │
-                                       index.json  ◄─── block, expiry      │ and again …      │
-                                       (lists sha256(ash),                 │ remi.gg/ee  Mt …  │
+                                       index.json  ◄─── block, expiry      │ and again,       │
+                                       (lists sha256(ash),                 │ and again …      │
                                         never the ash)                     └────────┬─────────┘
                                                                                     │ 4,096 epochs
                                                                                     ▼ ≈ 18 days
@@ -101,7 +108,7 @@ The ash goes into the URL fragment (`/seal/#<ash>`). Browsers keep the fragment 
 
 The page sends the ash to the relayer (`POST /cast`). The relayer folds it again, checks that this exact Seal text was never cast before, and sends **one blob transaction for that one Seal**. The writer pays nothing.
 
-The blob is 4,096 field elements of 32 bytes. Every field element has to stay below the BLS12-381 modulus, so the Seal is laid out to make the first byte of each one plain ASCII: a 9-space margin, each line padded to a 32-byte boundary, dashed borders. Then the Seal is **repeated until the blob is full**. Scroll to the bottom of the blob in Etherscan's UTF-8 view and the last line is `remi.gg/ee` and a New Testament reference, picked by the Seal itself.
+The blob is 4,096 field elements of 32 bytes. Every field element has to stay below the BLS12-381 modulus, so the Seal is laid out to make the first byte of each one plain ASCII: a 9-space margin, each line padded to a 32-byte boundary, dashed borders. Then the Seal is **repeated until the blob is full**.
 
 Ethereum keeps blobs for **4,096 epochs, about 18 days**. After that the consensus nodes prune it. Archives like Blobscan may keep a copy; the words were never in it.
 
@@ -124,6 +131,7 @@ One mint per ash and one per blob hash. The token stores two things: the ash and
 | EphemeralEntropy | [`0x9f0749bb1d015cdc982a53784d1b692ce5736e15`](https://etherscan.io/address/0x9f0749bb1d015cdc982a53784d1b692ce5736e15) | ERC-721, 1,000 supply, ERC-2981 3.33% |
 | SealRenderer | [`0x328da9d3accff531de866c285cb3c9740058bcd6`](https://etherscan.io/address/0x328da9d3accff531de866c285cb3c9740058bcd6) | folds the ash, draws the SVG, builds `tokenURI` |
 | SealShapes | [`0x54658a18e8b085bf78129cebe5a596f3f596b14a`](https://etherscan.io/address/0x54658a18e8b085bf78129cebe5a596f3f596b14a) | the traced glyph paths |
+| Relayer | [`0x1C67A27eA8Ec8FE25d45e0b15719A2B7A8a64E2A`](https://etherscan.io/address/0x1C67A27eA8Ec8FE25d45e0b15719A2B7A8a64E2A) | sends every blob |
 
 The renderer runs the same fold as `fold2.js` in Solidity, tested against 75 fixed vectors. The art is an SVG with its animation in CSS: glyphs fade in from the centre, then a wave of light runs across the Seal on one of **eleven routes** picked by the ash (bounce, ring, golden spiral, twin spiral, top to bottom, bottom to top, diagonal, sweep, fold, sparkle, still). A viewer that skips CSS shows the finished Seal.
 
@@ -133,7 +141,7 @@ All contracts are verified on Etherscan.
 
 ## Three keys
 
-- **Gas key:** hot, small float, pays for blobs.
+- **Gas key:** hot, small float, pays for blobs. This is the relayer: [`0x1C67…4E2A`](https://etherscan.io/address/0x1C67A27eA8Ec8FE25d45e0b15719A2B7A8a64E2A). Every Seal ever cast is one of its transactions.
 - **Signer key:** signs mints, separate from gas, rotatable by the owner.
 - **Treasury:** mint ETH goes to an immutable address through `withdraw()`.
 
@@ -165,10 +173,15 @@ Run it locally with any static server, from a folder that contains this repo as 
 
 ## Credits
 
-The blob sender grew out of Kurt's `send-blob.ts`.
+The blob sender grew out of [blobsender](https://github.com/0xKurt/blobsender) by [0xKurt](https://github.com/0xKurt).
 
 ## License
 
-CC0. Use the Seals, the pages and the art however you like.
+Two licenses, one for each half.
+
+- **Code: [MIT](LICENSE).** Fork it, change it, ship your own. Keep the license notice.
+- **Art: [CC0](LICENSE-ART).** The Seals, the images and the words on the pages are in the public domain. Print them, remix them, sell them, put them in your own project. You need no permission and owe no credit.
+
+CC0 means the creator gives up copyright on purpose, so the art can travel. Holding a Seal means owning the token on chain; the image belongs to everyone.
 
 Made by [@Remidotgg](https://x.com/Remidotgg).
