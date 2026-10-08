@@ -14,15 +14,27 @@ Write a message and it is folded into a Seal, cast into Ethereum blob space for 
   YOUR BROWSER                         RELAYER                          ETHEREUM L1
   ────────────                         ───────                          ───────────
 
-  message ─┐
-           │  + 32 random bytes (salt, from your machine's entropy pool)
-           ▼
-  SHA-256(salt ‖ message)
-           │
-           ▼
-        ┌──────┐   words cleared,
-        │ ASH  │   salt dropped
-        └──┬───┘   (32 bytes)
+  "hello world"           SALT: 32 random bytes, fresh on every press
+       │                  ─────────────────────────────────────────────
+       │                  your OS keeps a pool of noise: keystroke
+       │                  timing, cursor movement, hardware jitter.
+       │                  crypto.getRandomValues draws 32 bytes from it.
+       │                  nobody can predict them, not even this page.
+       │                           │
+       └──────────┬────────────────┘
+                  ▼
+       SHA-256( salt ‖ message )
+                  │
+                  ▼
+               ┌──────┐   words cleared,
+               │ ASH  │   salt thrown away
+               └──┬───┘   (32 bytes, one-way)
+                  │
+                  │       "hello world" + salt A  →  ash 3fa1…  →  Seal A
+                  │       "hello world" + salt B  →  ash 3afe…  →  Seal B
+                  │       same words, a different Seal every time,
+                  │       and no way to check a guess against one
+           ┌──────┘
            │
            ├──► fold ──► ┌ ─ ─ ─ ─ ─ ┐
            │             │  9 × 9    │   same ash, same Seal, always
