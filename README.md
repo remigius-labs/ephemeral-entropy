@@ -67,8 +67,6 @@ Write a message and it is folded into a Seal, cast into Ethereum blob space for 
                                                                            and draws the SVG on chain
 ```
 
-<p align="center"><img src="docs/cast.gif" width="720" alt="Writing, hashing and casting a Seal"></p>
-
 ## 1. Write
 
 You type in a box. The text lives in that box and nowhere else.
