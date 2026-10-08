@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://ethereum-rpc.publicnode.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&text=%E2%95%94%E2%95%97%E2%95%9A%E2%95%9D%E2%95%91%E2%95%90%E2%95%A6%E2%95%A9%E2%95%A0%E2%95%A3%C2%B7%E2%88%99%E2%80%87%E2%88%98%E2%97%A6%E2%8A%B9%E2%9C%A7%E2%97%87%E2%97%8B%E2%97%8A%E2%9C%A6%E2%97%86%E2%97%8F%E2%98%85%E2%97%89%E2%9C%A0%E2%8A%99%E2%97%B0%E2%97%B3%E2%97%B1%E2%97%B2%E2%96%A3%E2%9D%96%E2%97%A4%E2%97%A5%E2%97%A3%E2%97%A2%E2%96%B2%E2%96%BC%E2%97%80%E2%96%B6%E2%97%88%E2%96%91%E2%96%92%E2%96%93%E2%96%88%E2%96%80%E2%96%84%E2%94%82%E2%94%80%E2%94%BC&display=swap">
-  <link rel="stylesheet" href="entropy.css?v=16">
+  <link rel="stylesheet" href="entropy.css?v=17">
   <style>
-    body { height: 100dvh; box-sizing: border-box; overflow: hidden; padding-bottom: 1.2rem; }
+    body { height: calc(100dvh / var(--z)); box-sizing: border-box; overflow: hidden; padding-bottom: 1.2rem; }
     main { flex: 1 1 0; min-height: 0; }
     #write.door { min-height: 0; height: 100%; justify-content: flex-start; }
     svg#first { flex: 1 1 0; min-height: 0; max-height: none; width: 100%; max-width: 32rem; margin: 1.4rem auto 1.2rem; }
@@ -59,10 +59,10 @@
 
   <script src="ee-config.js"></script>
   <script src="mint.js?v=9"></script>
-  <script src="corners.js?v=12" data-base="" data-nowrite></script>
+  <script src="corners.js?v=13" data-base="" data-nowrite></script>
   <script src="fold2.js?v=2"></script>
   <script src="shapes2.js?v=2"></script>
-  <script src="entropy.js?v=16"></script>
+  <script src="entropy.js?v=17"></script>
   <script>
     const FUSION_LINE = () => "Every minted Seal woven into this one";
     (() => {

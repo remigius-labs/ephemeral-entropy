@@ -42,8 +42,8 @@
       if (!h1) return;
       const gap = document.querySelector(".corner-gap"), lead = document.querySelector(".corner-l .corner");
       if (gap && lead) gap.style.height = lead.offsetHeight + "px";
-      const h = h1.getBoundingClientRect();
-      document.querySelectorAll(".corner-l, .corner-r").forEach(c => { const first = c.firstElementChild; c.style.top = Math.max(8, h.top + (h.height - first.offsetHeight) / 2) + "px"; });
+      const h = h1.getBoundingClientRect(), z = (document.documentElement.currentCSSZoom || 1);
+      document.querySelectorAll(".corner-l, .corner-r").forEach(c => { const first = c.firstElementChild; c.style.top = Math.max(8, h.top / z + (h.height / z - first.offsetHeight) / 2) + "px"; });
     };
     let label = "Connect", account = null;
     const hasSeals = () => { try { if (JSON.parse(localStorage.getItem("ee.mine") || "[]").length) return true; for (let i = 0; i < localStorage.length; i++) if ((localStorage.key(i) || "").startsWith("ee.ash.")) return true; } catch {} return false; };

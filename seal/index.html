@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&text=%E2%95%94%E2%95%97%E2%95%9A%E2%95%9D%E2%95%91%E2%95%90%E2%95%A6%E2%95%A9%E2%95%A0%E2%95%A3%C2%B7%E2%88%99%E2%80%87%E2%88%98%E2%97%A6%E2%8A%B9%E2%9C%A7%E2%97%87%E2%97%8B%E2%97%8A%E2%9C%A6%E2%97%86%E2%97%8F%E2%98%85%E2%97%89%E2%9C%A0%E2%8A%99%E2%97%B0%E2%97%B3%E2%97%B1%E2%97%B2%E2%96%A3%E2%9D%96%E2%97%A4%E2%97%A5%E2%97%A3%E2%97%A2%E2%96%B2%E2%96%BC%E2%97%80%E2%96%B6%E2%97%88%E2%96%91%E2%96%92%E2%96%93%E2%96%88%E2%96%80%E2%96%84%E2%94%82%E2%94%80%E2%94%BC&display=swap">
-  <link rel="stylesheet" href="../entropy.css?v=16">
+  <link rel="stylesheet" href="../entropy.css?v=17">
   <style>
-    body { height: 100dvh; box-sizing: border-box; overflow: hidden; padding-top: 0.5rem; padding-bottom: 1.6rem; }
+    body { height: calc(100dvh / var(--z)); box-sizing: border-box; overflow: hidden; padding-top: 0.5rem; padding-bottom: 1.6rem; }
     main { flex: 1 1 0; min-height: 0; display: flex; }
     main, #result { align-items: center; justify-content: flex-start; }
     #result { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
@@ -43,14 +43,14 @@
     .grp legend { padding: 0 0.5em; font-size: 0.7rem; letter-spacing: 0.12em; color: #6b5f52; text-transform: uppercase; }
     .act a.main:hover { background: #fff1dc; border-color: #fff1dc; }
     .act a:not(.main):hover { background: #c4b5a0; color: #000; }
-    h1 { align-self: center; text-align: center; width: 100%; font-size: clamp(1.45rem, 3.6vh, 2.2rem); }
+    h1 { align-self: center; text-align: center; width: 100%; font-size: clamp(1.45rem, calc(3.6vh / var(--z)), 2.2rem); }
     h1 a.home { color: inherit; text-decoration: none; }
     .wiz { width: 100%; max-width: 24rem; margin: 0 auto; text-align: center; }
     .lblrow { position: relative; }
     .lbl { margin: 0.5rem 0 0.6rem; font-size: 0.75rem; letter-spacing: 0.12em; color: #6b5f52; text-align: center; }
     .q { position: absolute; right: 0; top: 0; height: 100%; display: flex; align-items: center; font-size: 0.75rem; color: #6b5f52; cursor: help; letter-spacing: 0; }
     .q:hover, .q:focus { color: #c4b5a0; outline: none; }
-    .q::after { content: attr(data-tip); position: absolute; left: calc(100% + 0.7em); top: 0; width: 22rem; max-width: 80vw; padding: 0.6rem 0.8rem; background: #000; border: 1px solid #6b5f52; color: #c4b5a0; font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; text-align: left; white-space: pre-line; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+    .q::after { content: attr(data-tip); position: absolute; left: calc(100% + 0.7em); top: 0; width: 22rem; max-width: calc(80vw / var(--z)); padding: 0.6rem 0.8rem; background: #000; border: 1px solid #6b5f52; color: #c4b5a0; font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; text-align: left; white-space: pre-line; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
     .q:hover::after, .q:focus::after { opacity: 1; }
     @media (max-width: 52rem) { .q::after { left: auto; right: 0; top: 1.6em; } }
     .line { margin: 0.5rem auto 0; font-size: 0.72rem; line-height: 1.6; color: #6b5f52; text-align: center; }
@@ -80,14 +80,14 @@
     #sealbox[hidden] { display: block; visibility: hidden; }
     #sealwrap { aspect-ratio: 1 / 1; }
     @media (min-width: 641px) {
-      .wiz { max-width: clamp(20rem, calc(100vh - 22rem), 40rem); }
-      svg#art { max-height: 66vh; }
+      .wiz { max-width: clamp(20rem, calc(calc(100vh / var(--z)) - 22rem), 40rem); }
+      svg#art { max-height: calc(66vh / var(--z)); }
       .act a { padding: 0.42rem 0.4rem; font-size: 0.8rem; width: 9.5rem; flex-basis: 9.5rem; }
       .act a.hero, #pair.solo a { width: 19.6rem; flex-basis: 19.6rem; }
       #pair { margin-top: calc(1.4rem - 11px); }
       .life .hb { margin-top: 7px; } .life { row-gap: calc(0.45rem + 4px); }
     }
-    svg#art { display: block; width: 100%; height: auto; max-height: 50vh; margin: 0 auto; }
+    svg#art { display: block; width: 100%; height: auto; max-height: calc(50vh / var(--z)); margin: 0 auto; }
     pre#seal { margin: 0; font-size: 0.8rem; line-height: 1.5; color: #c4b5a0; white-space: pre; text-align: left; }
     pre#seal:empty { display: none; }
     #status { margin: 0.2rem auto 0; font-size: 0.8rem; line-height: 1.7; color: #c4b5a0; text-align: center; min-height: 1.7em; }
@@ -128,8 +128,8 @@ The Seal appears as text, straight from the chain.">(?)</span></div>
   <script src="../shapes2.js?v=2"></script>
   <script src="../mint.js?v=9"></script>
   <script src="../mine.js?v=1"></script>
-  <script src="../corners.js?v=12" data-base="../"></script>
-  <script src="../entropy.js?v=16"></script>
+  <script src="../corners.js?v=13" data-base="../"></script>
+  <script src="../entropy.js?v=17"></script>
   <script>
     let API = "https://api.blobscan.com/blobs/", SCAN = "https://blobscan.com", ETHERSCAN = "https://etherscan.io";
     async function chain() {
@@ -293,7 +293,7 @@ The Seal appears as text, straight from the chain.">(?)</span></div>
       await letGoSeal(art, 5000);
     }
 
-    const fit = () => { const sb = sealbox; sb.style.removeProperty("--sealmax"); const over = document.documentElement.scrollHeight - innerHeight; if (over > 0) sb.style.setProperty("--sealmax", Math.max(160, sb.clientWidth - over) + "px"); };
+    const fit = () => { const sb = sealbox; sb.style.removeProperty("--sealmax"); const over = (document.documentElement.scrollHeight - innerHeight) / (document.documentElement.currentCSSZoom || 1); if (over > 0) sb.style.setProperty("--sealmax", Math.max(160, sb.clientWidth - over) + "px"); };
     addEventListener("hashchange", () => go(location.hash.slice(1)));
     go(location.hash.slice(1));
   </script>

@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=VT323&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&text=%E2%95%94%E2%95%97%E2%95%9A%E2%95%9D%E2%95%91%E2%95%90%E2%95%A6%E2%95%A9%E2%95%A0%E2%95%A3%C2%B7%E2%88%99%E2%80%87%E2%88%98%E2%97%A6%E2%8A%B9%E2%9C%A7%E2%97%87%E2%97%8B%E2%97%8A%E2%9C%A6%E2%97%86%E2%97%8F%E2%98%85%E2%97%89%E2%9C%A0%E2%8A%99%E2%97%B0%E2%97%B3%E2%97%B1%E2%97%B2%E2%96%A3%E2%9D%96%E2%97%A4%E2%97%A5%E2%97%A3%E2%97%A2%E2%96%B2%E2%96%BC%E2%97%80%E2%96%B6%E2%97%88%E2%96%91%E2%96%92%E2%96%93%E2%96%88%E2%96%80%E2%96%84%E2%94%82%E2%94%80%E2%94%BC&display=swap">
-  <link rel="stylesheet" href="../entropy.css?v=16">
+  <link rel="stylesheet" href="../entropy.css?v=17">
   <style>
     body { animation: none !important; }
     main, #write { align-items: center; }
@@ -23,10 +23,10 @@
     footer.by a { pointer-events: auto; }
     h1 { align-self: center; text-align: center; width: 100%; }
     h1 a.home { color: inherit; text-decoration: none; }
-    h1 { font-size: clamp(1.45rem, 3.6vh, 2.2rem); }
+    h1 { font-size: clamp(1.45rem, calc(3.6vh / var(--z)), 2.2rem); }
     main, #write { flex: 1; }
     .wiz { width: 100%; max-width: 24rem; margin: 0 auto 0; text-align: center; }
-    @media (min-width: 641px) { main { width: min(46rem, 100%); } .wiz { max-width: clamp(24rem, 70vh, 46rem); } }
+    @media (min-width: 641px) { main { width: min(46rem, 100%); } .wiz { max-width: clamp(24rem, calc(70vh / var(--z)), 46rem); } }
 
     @media (max-width: 640px) {
       h1 { font-size: 1.2rem; margin: 0.35rem 0 0.25rem; }
@@ -90,7 +90,7 @@
     .q { position: absolute; right: 0; top: -1.5em; display: flex; align-items: center; font-size: 0.75rem; color: #6b5f52; cursor: help; letter-spacing: 0; }
     .q[hidden] { display: none; }
     .q:hover, .q:focus { color: #c4b5a0; outline: none; }
-    .q::after { content: attr(data-tip); position: absolute; left: calc(100% + 0.7em); top: 0; width: 22rem; max-width: 80vw; padding: 0.6rem 0.8rem; background: #000; border: 1px solid #6b5f52; color: #c4b5a0; font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; text-align: left; white-space: pre-line; text-transform: none; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
+    .q::after { content: attr(data-tip); position: absolute; left: calc(100% + 0.7em); top: 0; width: 22rem; max-width: calc(80vw / var(--z)); padding: 0.6rem 0.8rem; background: #000; border: 1px solid #6b5f52; color: #c4b5a0; font-size: 0.75rem; line-height: 1.5; letter-spacing: 0; text-align: left; white-space: pre-line; text-transform: none; z-index: 5; opacity: 0; pointer-events: none; transition: opacity 160ms ease; }
     .q:hover::after, .q:focus::after { opacity: 1; }
     @media (max-width: 52rem) { .q::after { left: auto; right: 0; top: 1.6em; } }
     #sealbox { position: relative; width: 100%; box-sizing: border-box; background: #000; border: 1px solid #2a231e; overflow: hidden; transition: height 380ms ease; }
@@ -221,15 +221,15 @@
   <script src="../ee-config.js"></script>
   <script src="../mint.js?v=9"></script>
   <script src="../mine.js?v=1"></script>
-  <script src="../corners.js?v=12" data-base="../" data-mode="write" data-defer></script>
+  <script src="../corners.js?v=13" data-base="../" data-mode="write" data-defer></script>
   <script src="bar-variants.js?v=6"></script>
   <script src="../fold2.js?v=2"></script>
   <script src="../shapes2.js?v=2"></script>
-  <script src="../entropy.js?v=16"></script>
+  <script src="../entropy.js?v=17"></script>
   <script src="seal-anim.js?v=6"></script>
   <script src="../castanim.js?v=8"></script>
   <script src="../vendor/gifenc.js"></script>
-  <script src="../sealgif.js?v=5"></script>
+  <script src="../sealgif.js?v=6"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const msg = $("msg"), s1 = $("s1"), s2 = $("s2"), s3 = $("s3"), b1 = $("b1"), b2 = $("b2"), b3 = $("b3");
@@ -247,8 +247,10 @@
     const BARS = () => new Array(64).fill("█");
     let COLS = 0;
 
+    const crect = (e) => { const r = e.getBoundingClientRect(), z = (document.documentElement.currentCSSZoom || 1); return { left: r.left / z, top: r.top / z, right: r.right / z, bottom: r.bottom / z, width: r.width / z, height: r.height / z }; };
+    const winH = () => innerHeight / (document.documentElement.currentCSSZoom || 1);
     let msgFloor = 0;
-    const grow = () => { msg.style.height = "auto"; msg.style.height = Math.max(msgFloor, 9 * parseFloat(getComputedStyle(document.documentElement).fontSize), Math.min(msg.scrollHeight, innerHeight * 0.4)) + "px"; };
+    const grow = () => { msg.style.height = "auto"; msg.style.height = Math.max(msgFloor, 9 * parseFloat(getComputedStyle(document.documentElement).fontSize), Math.min(msg.scrollHeight, winH() * 0.4)) + "px"; };
     msg.addEventListener("input", () => { b1.disabled = msg.value.trim().length === 0; grow(); });
     msg.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (!b1.disabled) b1.click(); } });
     const ASH_TIP = $("q-ash").dataset.tip;
@@ -294,8 +296,8 @@
     if (Q.has("debug")) { const dbg = (m) => { statusEl.hidden = false; statusEl.textContent = "ERR " + m; }; addEventListener("error", (e) => dbg(e.message + " @" + (e.filename || "").split("/").pop() + ":" + e.lineno)); addEventListener("unhandledrejection", (e) => dbg(String(e.reason && e.reason.stack || e.reason))); }
     const fit = () => {
       const sb = $("sealbox"); if (sb.hidden || sb.dataset.sizing) return;
-      const lastBox = $("grp-share").getBoundingClientRect().bottom;
-      const over = lastBox + parseFloat(getComputedStyle(document.body).paddingBottom) + (matchMedia("(min-width: 641px)").matches ? 8 : 46) - innerHeight;
+      const lastBox = crect($("grp-share")).bottom;
+      const over = lastBox + parseFloat(getComputedStyle(document.body).paddingBottom) + (matchMedia("(min-width: 641px)").matches ? 8 : 46) - winH();
       if (over > 0) { sb.style.transition = "none"; sb.style.height = Math.max(140, sb.offsetHeight - over) + "px"; void sb.offsetHeight; sb.style.transition = ""; }
     };
 
@@ -303,7 +305,7 @@
     if (matchMedia("(max-width: 640px)").matches && !HASH_ASH) addEventListener("load", () => {
       const act = $("act1"), foot = document.querySelector("footer.by");
       const below = act.offsetHeight + parseFloat(getComputedStyle(act).marginTop) + (foot ? foot.offsetHeight : 0) + 28;
-      const room = innerHeight - msg.getBoundingClientRect().top - below;
+      const room = winH() - crect(msg).top - below;
       const h = Math.floor(room * 0.75);
       if (h > msg.offsetHeight) { msg.style.height = h + "px"; msgFloor = h; }
     });
@@ -345,7 +347,7 @@
       const r = document.createElementNS(NS, "rect"); r.style.stroke = ink; r.setAttribute("x", 0.5); r.setAttribute("y", 0.5); svg.appendChild(r); wrap.appendChild(svg);
       const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, DUR = 620, t0 = performance.now();
       const frame = () => {
-        const bb = box.getBoundingClientRect(), wb = wrap.getBoundingClientRect(), bw = bb.width, bh = bb.height;
+        const bb = crect(box), wb = crect(wrap), bw = bb.width, bh = bb.height;
         const L = 2 * (bw - 1) + 2 * (bh - 1), p = ease(Math.min(1, (performance.now() - t0) / DUR));
         svg.style.left = (bb.left - wb.left) + "px"; svg.style.top = (bb.top - wb.top) + "px"; svg.setAttribute("width", bw); svg.setAttribute("height", bh);
         svg.setAttribute("viewBox", "0 0 " + bw + " " + bh);
@@ -361,7 +363,7 @@
       const r = document.createElementNS(NS, "rect"); r.style.stroke = ink; r.setAttribute("x", 0.5); r.setAttribute("y", 0.5); svg.appendChild(r); document.body.appendChild(svg);
       const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, t0 = performance.now();
       const frame = () => {
-        const r0 = el.getBoundingClientRect(), it = inset(), b = { left: r0.left, top: r0.top + it, width: r0.width, height: r0.height - it };
+        const r0 = crect(el), it = inset(), b = { left: r0.left, top: r0.top + it, width: r0.width, height: r0.height - it };
         const L = 2 * (b.width - 1) + 2 * (b.height - 1), p = ease(Math.min(1, (performance.now() - t0) / DUR));
         svg.style.left = b.left + "px"; svg.style.top = b.top + "px"; svg.setAttribute("width", b.width); svg.setAttribute("height", b.height); svg.setAttribute("viewBox", "0 0 " + b.width + " " + b.height);
         r.setAttribute("width", b.width - 1); r.setAttribute("height", b.height - 1); r.style.strokeDasharray = L; r.style.strokeDashoffset = L * (1 - p);
@@ -370,7 +372,7 @@
       frame();
     });
     const inkOf = (el) => { const had = el.classList.contains("unlined"); el.classList.remove("unlined", "hollow"); const c = getComputedStyle(el).borderTopColor; if (had) el.classList.add("unlined"); return c; };
-    const legendInset = (fs) => () => { const lg = fs.querySelector("legend"); return lg ? lg.getBoundingClientRect().height / 2 : 0; };
+    const legendInset = (fs) => () => { const lg = fs.querySelector("legend"); return lg ? crect(lg).height / 2 : 0; };
     const buildAll = async (eth, share, ethBtns, shareBtns) => {
       const frameInk = "#2a231e", buttonInk = "#6b5f52";
       const [svgE, svgS] = await Promise.all([drawOn(eth, frameInk, 520, legendInset(eth), true), drawOn(share, frameInk, 520, legendInset(share), true)]);
@@ -544,8 +546,8 @@
       const wasSt = statusEl.hidden, stHtml = statusEl.innerHTML;
       s3el.style.visibility = "hidden"; s3el.hidden = false; shareEl.hidden = false; statusEl.hidden = true;
       sealbox.style.transition = "none"; sealbox.style.height = natural + "px";
-      const lastBox = $("grp-share").getBoundingClientRect().bottom;
-      const over = lastBox + parseFloat(getComputedStyle(document.body).paddingBottom) + (matchMedia("(min-width: 641px)").matches ? 8 : 46) - innerHeight;
+      const lastBox = crect($("grp-share")).bottom;
+      const over = lastBox + parseFloat(getComputedStyle(document.body).paddingBottom) + (matchMedia("(min-width: 641px)").matches ? 8 : 46) - winH();
       s3el.hidden = was3; shareEl.hidden = wasS; statusEl.hidden = wasSt; statusEl.innerHTML = stHtml; s3el.style.visibility = "";
       const h1 = Math.max(140, natural - Math.max(0, over));
       if (matchMedia("(min-width: 641px)").matches && h1 < w1) {
@@ -587,7 +589,7 @@
     b2.addEventListener("click", sealIt);
 
     const walletBtn = $("wallet"); let account = null;
-    const levelWallet = () => { const h = document.querySelector("h1").getBoundingClientRect(); walletBtn.style.top = Math.max(8, h.top + (h.height - walletBtn.offsetHeight) / 2) + "px"; };
+    const levelWallet = () => { const h = crect(document.querySelector("h1")); walletBtn.style.top = Math.max(8, h.top + (h.height - walletBtn.offsetHeight) / 2) + "px"; };
     addEventListener("resize", levelWallet); addEventListener("load", levelWallet);
     const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
     const ENS_UR = "0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe", ENS_RPC = "https://ethereum-rpc.publicnode.com";
@@ -710,7 +712,7 @@
     b3.addEventListener("click", async () => {
       if (b3.dataset.mode === "view") { window.open(b3.dataset.href, "_blank", "noopener"); return; }
       if (b3.dataset.mode === "mint") { await connect(); return; }
-      b3.style.width = b3.getBoundingClientRect().width + "px";
+      b3.style.width = crect(b3).width + "px";
       if (stopLight) { stopLight(); stopLight = null; }
       b3.disabled = true; castDone = true; b3.querySelector(".big").textContent = "Pending"; b3.classList.add("pending");
       const demo = !window.EE_RELAY;

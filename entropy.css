@@ -1,4 +1,5 @@
-:root { --ease-out: cubic-bezier(0.2, 0.6, 0.3, 1); }
+:root { --ease-out: cubic-bezier(0.2, 0.6, 0.3, 1); --z: 1; }
+@media (min-width: 641px) { :root { --z: 0.75; zoom: 0.75; } }
 * { margin: 0; padding: 0; box-sizing: border-box; }
     ::-webkit-scrollbar { display: none; }
     html { scrollbar-width: none; -webkit-text-size-adjust: 100%; }
@@ -16,12 +17,12 @@
       background: #0d0a09;
       justify-content: flex-start;
       color: #c4b5a0;
-      min-height: 100vh;
+      min-height: calc(100vh / var(--z));
       display: flex;
       flex-direction: column;
       align-items: center;
       font-family: 'JetBrains Mono', monospace;
-      padding: clamp(1.2rem, 3vh, 2.5rem) 1.25rem 3rem;
+      padding: clamp(1.2rem, calc(3vh / var(--z)), 2.5rem) 1.25rem 3rem;
       position: relative;
       animation: crt-flicker 0.15s infinite;
     }
@@ -62,8 +63,8 @@
     [data-boot] { visibility: hidden; }
     [data-boot].quick { visibility: visible; animation: quick-in 200ms var(--ease-out) both; }
     @keyframes quick-in { from { opacity: 0; } to { opacity: 1; } }
-    svg#first { width: min(100%, 32rem); max-height: 46vh; margin: 0.9rem auto 0; }
-    .lede.one { margin-top: 0.8rem; font-size: clamp(0.78rem, 1.7vh, 0.92rem); color: #9a8d7c; max-width: 56ch; }
+    svg#first { width: min(100%, 32rem); max-height: calc(46vh / var(--z)); margin: 0.9rem auto 0; }
+    .lede.one { margin-top: 0.8rem; font-size: clamp(0.78rem, calc(1.7vh / var(--z)), 0.92rem); color: #9a8d7c; max-width: 56ch; }
     @media (max-width: 640px) {
       h1 { font-size: 1.45rem; margin: 0.1rem 0 0.3rem; }
       .lede.one { margin-top: 0.5rem; font-size: 0.72rem; line-height: 1.45; }
@@ -77,7 +78,7 @@
     h1 {
       font-family: 'VT323', monospace;
       font-weight: 400;
-      font-size: clamp(1.7rem, 4.2vh, 2.6rem);
+      font-size: clamp(1.7rem, calc(4.2vh / var(--z)), 2.6rem);
       letter-spacing: 0.08em;
       color: #c4b5a0;
       text-shadow: 0 0 12px rgba(196, 181, 160, 0.25);
@@ -91,7 +92,7 @@
 
     .lede {
       margin-top: 0.7rem;
-      font-size: clamp(0.68rem, 1.55vh, 0.86rem);
+      font-size: clamp(0.68rem, calc(1.55vh / var(--z)), 0.86rem);
       line-height: 1.55;
       color: #9a8d7c;
       max-width: 60ch;
@@ -176,9 +177,9 @@
     button:active:not(:disabled) { transform: scale(0.97); }
     button:disabled { opacity: 0.35; cursor: default; background: transparent; color: #c4b5a0; }
     .cta {
-      display: inline-block; margin-top: clamp(0.8rem, 2vh, 1.6rem);
+      display: inline-block; margin-top: clamp(0.8rem, calc(2vh / var(--z)), 1.6rem);
       color: #c4b5a0; border: 1px solid #6b5f52; padding: 0.7rem 1.5rem;
-      font-size: clamp(0.72rem, 1.5vh, 0.85rem); letter-spacing: 0.12em; text-decoration: none;
+      font-size: clamp(0.72rem, calc(1.5vh / var(--z)), 0.85rem); letter-spacing: 0.12em; text-decoration: none;
       transition: background 150ms var(--ease-out), color 150ms var(--ease-out), transform 160ms var(--ease-out);
     }
     a.cta { background: linear-gradient(#c4b5a0, #c4b5a0) no-repeat left center / 0% 100%; transition: background-size 140ms cubic-bezier(0.25, 0.8, 0.3, 1), color 90ms linear 30ms, transform 160ms var(--ease-out); }
@@ -188,11 +189,11 @@
 
     #write { display: flex; flex-direction: column; align-items: center; width: 100%; transition: opacity 0.25s; }
     #write.fading { opacity: 0; }
-    #write.door { min-height: calc(100vh - 8rem); justify-content: center; }
+    #write.door { min-height: calc(calc(100vh / var(--z)) - 8rem); justify-content: center; }
 
     #result {
       width: 100%;
-      min-height: calc(100vh - 9rem);
+      min-height: calc(calc(100vh / var(--z)) - 9rem);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -200,12 +201,12 @@
     }
     #result[hidden] { display: none; }
 
-    svg#seal, svg#art { width: min(100%, 30rem); max-height: 52vh; margin: 0 auto; }
+    svg#seal, svg#art { width: min(100%, 30rem); max-height: calc(52vh / var(--z)); margin: 0 auto; }
     svg#art[hidden] { display: none; }
 
     pre {
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(0.78rem, 3.1vw, 1.1rem);
+      font-size: clamp(0.78rem, calc(3.1vw / var(--z)), 1.1rem);
       line-height: 1.35;
       white-space: pre;
       text-align: center;
@@ -258,7 +259,7 @@
 #veil {
   position: fixed;
   top: 0; left: 0;
-  width: 100vw; height: 100vh;
+  width: calc(100vw / var(--z)); height: calc(100vh / var(--z));
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px;
   line-height: 1.2;
@@ -367,7 +368,7 @@ svg.seal .w { color: #fff1dc; opacity: 0; animation: seal-wave 5000ms ease-in-ou
 
 .pnav { display: none; }
 @media (max-width: 640px) {
-  h1, #logo { white-space: nowrap; font-size: min(1.6rem, 6.4vw) !important; }
+  h1, #logo { white-space: nowrap; font-size: min(1.6rem, calc(6.4vw / var(--z))) !important; }
   .corner, .corner-r { display: none !important; }
   .pnav { display: flex; justify-content: center; gap: 1.6rem; margin: 0 0 0.4rem; font: 0.72rem 'JetBrains Mono', monospace; letter-spacing: 0.12em; }
   .pnav a { color: #a39584; text-decoration: none; }

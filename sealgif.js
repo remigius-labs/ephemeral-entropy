@@ -68,7 +68,7 @@
     const url = URL.createObjectURL(blob), file = new File([blob], name, { type: blob.type });
     const box = document.createElement("div");
     box.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;font:inherit;color:#c4b5a0";
-    const img = document.createElement("img"); img.src = url; img.alt = name; img.style.cssText = "max-width:100%;max-height:65vh;border:1px solid #2a231e";
+    const img = document.createElement("img"); img.src = url; img.alt = name; img.style.cssText = "max-width:100%;max-height:calc(65vh / var(--z));border:1px solid #2a231e";
     const tip = document.createElement("div"); tip.textContent = "Long press the image to save it"; tip.style.cssText = "font-size:.85rem;letter-spacing:.05em;color:#9a8d7c";
     const row = document.createElement("div"); row.style.cssText = "display:flex;gap:.8rem";
     const btn = (label, main) => { const b = document.createElement("button"); b.textContent = label; b.style.cssText = "font:inherit;font-size:.9rem;padding:.55rem 1.2rem;border:1px solid " + (main ? "#c4b5a0" : "#6b5f52") + ";background:" + (main ? "#c4b5a0" : "transparent") + ";color:" + (main ? "#000" : "#c4b5a0"); row.appendChild(b); return b; };

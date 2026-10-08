@@ -4,8 +4,9 @@
     function veil() {
       const el = document.getElementById("veil");
       if (!el) return Promise.resolve();
-      const cols = Math.ceil(window.innerWidth / 8) + 1;
-      const rows = Math.ceil(window.innerHeight / 14) + 1;
+      const z = (document.documentElement.currentCSSZoom || 1);
+      const cols = Math.ceil(window.innerWidth / z / 8) + 1;
+      const rows = Math.ceil(window.innerHeight / z / 14) + 1;
       const cx = cols / 2, cy = rows / 2;
       const maxd = Math.sqrt(cx * cx + (cy * 14 / 8) ** 2);
       const lock = new Float32Array(cols * rows);
@@ -133,8 +134,8 @@
         });
         return { node, meta };
       });
-      const box = el.getBoundingClientRect(), was = [el.style.minWidth, el.style.minHeight];
-      if (getComputedStyle(el).display !== "inline") { el.style.minWidth = box.width + "px"; el.style.minHeight = box.height + "px"; }
+      const z = (document.documentElement.currentCSSZoom || 1), box = el.getBoundingClientRect(), was = [el.style.minWidth, el.style.minHeight];
+      if (getComputedStyle(el).display !== "inline") { el.style.minWidth = box.width / z + "px"; el.style.minHeight = box.height / z + "px"; }
       el.style.visibility = "visible";
       const t0 = performance.now();
       return new Promise(done0 => {
@@ -469,9 +470,10 @@
     let bgCols = 0;
     function drawBg() {
       if (!bg) return;
-      const height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, window.innerHeight);
+      const z = (document.documentElement.currentCSSZoom || 1);
+      const height = Math.max(document.documentElement.scrollHeight / z, document.body.scrollHeight, window.innerHeight / z);
       bg.style.height = height + "px";
-      const cols = Math.ceil(window.innerWidth / 8) + 2;
+      const cols = Math.ceil(window.innerWidth / z / 8) + 2;
       const rows = Math.ceil(height / (14 * 1.2));
       if (cols === bgCols && bg.dataset.rows >= rows) return;
       bgCols = cols; bg.dataset.rows = rows;
