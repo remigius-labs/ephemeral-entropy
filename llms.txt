@@ -33,10 +33,12 @@ By Remi (https://remi.gg). Live on Ethereum mainnet since 2026-10-02.
 - Collection contract (ERC-721): 0x9f0749bb1d015cdc982a53784d1b692ce5736e15
 - Renderer: 0x328da9d3accff531de866c285cb3c9740058bcd6
 - Shapes: 0x54658a18e8b085bf78129cebe5a596f3f596b14a
+- Relayer (sends every blob): 0x1C67A27eA8Ec8FE25d45e0b15719A2B7A8a64E2A
 - Supply: 1,000 max
 - Price: 0.00777 ETH, exact amount
 - Royalty: 3.33% (ERC-2981)
-- License: CC0
+- License: art CC0, code MIT
+- Source: https://github.com/remigius-labs/ephemeral-entropy
 - Contracts verified on Etherscan
 - OpenSea: https://opensea.io/collection/ephemeral-entropy
 
